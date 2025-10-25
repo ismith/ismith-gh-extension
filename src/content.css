@@ -1,0 +1,18 @@
+/* Styles for GitHub Issue & PR Manager */
+
+/* Custom filter dropdown styles will go here */
+
+/* Visual annotation styles */
+.gh-extension-mine {
+  border-left: 3px solid var(--color-accent-emphasis) !important;
+  padding-left: 8px !important;
+}
+
+.gh-extension-reviewed {
+  border-left: 3px solid var(--color-success-emphasis) !important;
+  padding-left: 8px !important;
+}
+
+.gh-extension-draft {
+  opacity: 0.6 !important;
+}

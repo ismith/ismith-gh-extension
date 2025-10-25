@@ -1,18 +1,18 @@
 # GitHub Extension TODO
 
 ## 1. Initialize Chrome extension (Manifest V3) in TypeScript
-- [ ] Set up npm project with TypeScript and build tools
-- [ ] Configure TypeScript (tsconfig.json)
-- [ ] Create manifest.json (v3) with GitHub/GHE permissions
-- [ ] Set up build system (webpack/esbuild)
-- [ ] Create basic extension structure (background, popup, content scripts)
-- [ ] Add MIT License
-- [ ] Create .gitignore
-- [ ] Write README with build and installation instructions
+- [x] Set up npm project with TypeScript and build tools
+- [x] Configure TypeScript (tsconfig.json)
+- [x] Create manifest.json (v3) with GitHub/GHE permissions
+- [x] Set up build system (webpack/esbuild)
+- [x] Create basic extension structure (background, popup, content scripts)
+- [x] Add MIT License
+- [x] Create .gitignore
+- [x] Write README with build and installation instructions
 
 ## 2. Configure for GitHub and GitHub Enterprise
-- [ ] Host permissions: github.com and *.ghe.com
-- [ ] Focus on /issues and /pulls views
+- [x] Host permissions: github.com and *.ghe.com
+- [x] Focus on /issues and /pulls views
 
 ## 3. Add "Custom filter" dropdown with search shortcuts
 - [ ] Add dropdown to the left of existing "Author" dropdown
