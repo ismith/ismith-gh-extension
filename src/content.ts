@@ -1,6 +1,6 @@
 // Content script for GitHub issue and PR pages
 
-console.log('GitHub Issue & PR Manager content script loaded');
+// GitHub Issue & PR Manager content script loaded
 
 // Check if we're on an issues or pulls page
 function isIssuesOrPullsPage(): boolean {
@@ -18,7 +18,6 @@ function addHeaderBadge() {
   // Find the user avatar in the header
   const avatar = document.querySelector('header [data-target="react-app.embeddedData"] img.avatar, header .AppHeader-user img.avatar');
   if (!avatar) {
-    console.log('GitHub Issue & PR Manager: Avatar not found yet');
     return;
   }
 
@@ -44,19 +43,16 @@ function addHeaderBadge() {
     e.preventDefault();
     e.stopPropagation();
     // TODO: Add click action (open popup or trigger feature)
-    console.log('Extension badge clicked!');
   });
 
   // Insert before the avatar container
   avatarContainer.parentElement?.insertBefore(badge, avatarContainer);
-  console.log('GitHub Issue & PR Manager: Header badge added');
 }
 
 // Add custom filter dropdown
 function addCustomFilterDropdown() {
   // Check if dropdown already exists
   if (document.querySelector('#gh-extension-filter-dropdown')) {
-    console.log('GitHub Issue & PR Manager: Dropdown already exists');
     return;
   }
 
@@ -69,7 +65,6 @@ function addCustomFilterDropdown() {
   if (authorButton && authorButton.parentElement) {
     container = authorButton.parentElement;
     insertBefore = authorButton;
-    console.log('GitHub Issue & PR Manager: Using Author button strategy');
   }
 
   // Strategy 2: Find the author select menu on /pulls pages
@@ -78,7 +73,6 @@ function addCustomFilterDropdown() {
     if (authorSelectMenu && authorSelectMenu.parentElement) {
       container = authorSelectMenu.parentElement;
       insertBefore = authorSelectMenu;
-      console.log('GitHub Issue & PR Manager: Using author-select-menu strategy, inserting before author');
     }
   }
 
@@ -89,16 +83,12 @@ function addCustomFilterDropdown() {
     if (filterBar) {
       container = filterBar;
       insertBefore = filterBar.firstElementChild;
-      console.log('GitHub Issue & PR Manager: Using filter bar strategy (fallback)');
     }
   }
 
   if (!container) {
-    console.log('GitHub Issue & PR Manager: Could not find insertion point');
     return;
   }
-
-  console.log('GitHub Issue & PR Manager: Filter bar container found:', container);
 
   // Insert dropdown
   insertDropdown(container, insertBefore);
@@ -106,7 +96,6 @@ function addCustomFilterDropdown() {
 
 function insertDropdown(container: Element | null, insertBefore: Element | null) {
   if (!container) {
-    console.log('GitHub Issue & PR Manager: No container for dropdown');
     return;
   }
 
@@ -196,7 +185,6 @@ function insertDropdown(container: Element | null, insertBefore: Element | null)
   } else {
     container.appendChild(dropdown);
   }
-  console.log('GitHub Issue & PR Manager: Custom filter dropdown added');
 }
 
 // Apply custom filter based on type
@@ -252,14 +240,12 @@ function showActiveFilterLabel() {
   // Find the repository div
   const repositoryDiv = document.querySelector('#repository');
   if (!repositoryDiv) {
-    console.log('GitHub Issue & PR Manager: #repository div not found');
     return;
   }
 
   // Go two levels up from #repository
   const grandparent = repositoryDiv.parentElement?.parentElement;
   if (!grandparent || !grandparent.parentElement) {
-    console.log('GitHub Issue & PR Manager: Could not find grandparent container');
     return;
   }
 
@@ -269,11 +255,9 @@ function showActiveFilterLabel() {
 
   if (filterName) {
     label.textContent = `Active filter: ${filterName}`;
-    console.log('GitHub Issue & PR Manager: Active filter label added:', filterName);
   } else {
     // Empty placeholder to maintain consistent spacing
     label.innerHTML = '&nbsp;';
-    console.log('GitHub Issue & PR Manager: Empty filter label placeholder added');
   }
 
   // Insert right after the grandparent div
@@ -288,8 +272,6 @@ function init() {
   if (!isIssuesOrPullsPage()) {
     return;
   }
-
-  console.log('GitHub Issue & PR Manager: Page detected');
 
   // Add custom filter dropdown on issues/pulls pages with retry
   addCustomFilterDropdown();
@@ -318,11 +300,8 @@ async function annotateIssuesAndPRs() {
   const titleLinks = document.querySelectorAll('a[data-hovercard-type="pull_request"], a[data-hovercard-type="issue"], a[data-testid="issue-pr-title-link"]');
 
   if (titleLinks.length === 0) {
-    console.log('GitHub Issue & PR Manager: No PR/Issue list items found');
     return;
   }
-
-  console.log(`GitHub Issue & PR Manager: Found ${titleLinks.length} items to annotate`);
 
   const annotations: Array<{title: string, id: string, annotation: string}> = [];
 
@@ -365,7 +344,6 @@ async function annotateIssuesAndPRs() {
     }
 
     if (!listItem) {
-      console.log('GitHub Issue & PR Manager: Could not find list item container for', titleElement);
       return;
     }
 
@@ -477,7 +455,6 @@ async function checkForInteractions(titleElement: HTMLElement, listItem: HTMLEle
                                    html.includes('approved');
 
       if (hasYou && hasReviewInteraction) {
-        console.log(`Found review/comment indicator in hovercard for ${hovercardUrl}`);
         return 'reviewed';
       }
 
@@ -485,16 +462,12 @@ async function checkForInteractions(titleElement: HTMLElement, listItem: HTMLEle
       const hasMention = html.includes('mentioned');
 
       if (hasYou && hasMention) {
-        console.log(`Found mention indicator in hovercard for ${hovercardUrl}`);
         return 'mentioned';
       }
-    } else {
-      console.log(`Hovercard fetch failed:`, response.status, response.statusText);
     }
 
     return null;
   } catch (error) {
-    console.error(`Error fetching hovercard:`, error);
     return null;
   }
 }
