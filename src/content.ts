@@ -364,12 +364,67 @@ async function annotateIssuesAndPRs() {
 
     annotations.push({ title, id, annotation });
 
-    // TODO: Check for comments/reviews via API and add green border if applicable
+    // Check for comments/reviews via API and add green border if applicable
+    // Do this asynchronously to avoid blocking
+    checkForReviews(titleElement, listItem, targetElement, getCurrentUser()).then(hasReviewed => {
+      if (hasReviewed && !isMine) {
+        // Add green border for reviewed PRs (unless it's mine, blue takes precedence)
+        targetElement.classList.add('gh-extension-reviewed');
+      }
+    });
   });
 
   // Log all annotations in a table
   if (annotations.length > 0) {
     console.table(annotations);
+  }
+}
+
+// Check if user has reviewed or commented on a PR
+async function checkForReviews(titleElement: HTMLElement, listItem: HTMLElement, targetElement: HTMLElement, currentUser: string | null): Promise<boolean> {
+  if (!currentUser) {
+    return false;
+  }
+
+  // Get the hovercard URL from the title element
+  const hovercardUrl = titleElement.getAttribute('data-hovercard-url');
+  if (!hovercardUrl) {
+    return false;
+  }
+
+  try {
+    // Fetch the hovercard - it already contains review/comment info
+    const response = await fetch(hovercardUrl, {
+      headers: {
+        'Accept': 'text/html',
+        'X-Requested-With': 'XMLHttpRequest'
+      }
+    });
+
+    if (response.ok) {
+      const html = await response.text();
+
+      // Check if the hovercard contains indicators that the user has interacted with the PR
+      // Look for "You" combined with key phrases indicating participation
+      const hasYou = html.includes('You');
+      const hasInteraction = html.includes('are assigned to') ||
+                            html.includes('commented on') ||
+                            html.includes('left a review') ||
+                            html.includes('reviewed') ||
+                            html.includes('approved');
+
+      if (hasYou && hasInteraction) {
+        console.log(`Found review/comment indicator in hovercard for ${hovercardUrl}`);
+        return true;
+      }
+    } else {
+      console.log(`Hovercard fetch failed:`, response.status, response.statusText);
+    }
+
+    return false;
+  } catch (error) {
+    console.error(`Error fetching hovercard:`, error);
+    return false;
   }
 }
 

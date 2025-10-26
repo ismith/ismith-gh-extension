@@ -26,7 +26,7 @@
 ## 4. Add visual annotations to PR/Issue list items
 - [x] Grey out drafts not authored by me (or copilot at my request)
 - [x] Blue border for "mine" (author:@me or copilot+assignee:@me)
-- [ ] Green border if I've commented/reviewed (via API)
+- [x] Green border if I've commented/reviewed (via hovercard)
 - [x] Blue takes precedence over green
 - [x] Use GitHub's color palette
 
