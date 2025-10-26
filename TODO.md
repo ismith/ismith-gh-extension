@@ -39,5 +39,5 @@
 - [x] Make it clickable to open extension popup or perform action
 
 ## 7. Bug fixes and improvements
-- [ ] Fix: Custom filter button shows on /issues but not /pulls
-- [ ] Fix: Annotations work on /pulls but not /issues
+- [x] Fix: Custom filter button shows on /issues but not /pulls
+- [x] Fix: Annotations work on /pulls but not /issues
