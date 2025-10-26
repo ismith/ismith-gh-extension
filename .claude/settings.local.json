@@ -5,7 +5,12 @@
       "Bash(git commit -m \"$(cat <<''EOF''\nAdd project planning and context files\n\nInitialize project with TODO.md for task tracking and .claude/ directory\nfor maintaining context across sessions.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
       "Bash(npm init -y)",
       "Bash(npm install --save-dev typescript webpack webpack-cli ts-loader copy-webpack-plugin @types/chrome)",
-      "Bash(npm run build)"
+      "Bash(npm run build)",
+      "Bash(git add README.md TODO.md)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nImprove README with detailed reload instructions\n\nAdd clear step-by-step instructions for reloading the extension after\nmaking changes. Also add task 5 (icon creation) to TODO.md.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Read(//Users/ismith/Downloads/**)",
+      "Bash(git add src/icons/ TODO.md .claude/)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nAdd extension icons with transparent background\n\nCreated icon files (16x16, 48x48, 128x128) from octocat image:\n- Processed original image to remove white background\n- Cropped to smallest bounding box and made square\n- Generated all required icon sizes for Chrome extension\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")"
     ],
     "deny": [],
     "ask": []
