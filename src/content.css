@@ -82,22 +82,5 @@
   border-left-color: var(--borderColor-accent-emphasis, var(--color-accent-emphasis, #0969da));
 }
 
-/* Visual annotation styles */
-.gh-extension-mine {
-  border-left: 4px solid #0969da !important;
-  margin-left: -4px !important;
-}
-
-.gh-extension-reviewed {
-  border-left: 4px solid #1a7f37 !important;
-  margin-left: -4px !important;
-}
-
-.gh-extension-mentioned {
-  border-left: 4px solid #ff6600 !important;
-  margin-left: -4px !important;
-}
-
-.gh-extension-draft {
-  opacity: 0.6 !important;
-}
+/* Visual annotation styles are now dynamically injected based on config */
+/* See injectDynamicCSS() in content.ts */

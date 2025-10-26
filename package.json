@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Chrome extension for GitHub issue and PR management",
   "scripts": {
-    "build": "webpack --mode production",
+    "build": "webpack --mode production && node scripts/generate-version.js",
     "dev": "webpack --mode development --watch",
     "clean": "rm -rf dist"
   },

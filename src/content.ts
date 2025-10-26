@@ -1,6 +1,6 @@
 // Content script for GitHub issue and PR pages
 
-// GitHub Issue & PR Manager content script loaded
+import { loadConfig } from './config';
 
 // Check if we're on an issues or pulls page
 function isIssuesOrPullsPage(): boolean {
@@ -38,11 +38,11 @@ function addHeaderBadge() {
   const iconUrl = chrome.runtime.getURL('icons/icon48.png');
   badge.innerHTML = `<img src="${iconUrl}" alt="Extension" style="width: ${avatarSize}px; height: ${avatarSize}px; vertical-align: middle; border-radius: 50%;">`;
 
-  // Add click handler
+  // Add click handler to open popup
   badge.addEventListener('click', (e) => {
     e.preventDefault();
     e.stopPropagation();
-    // TODO: Add click action (open popup or trigger feature)
+    chrome.runtime.sendMessage({ type: 'open-popup' });
   });
 
   // Insert before the avatar container
@@ -50,7 +50,13 @@ function addHeaderBadge() {
 }
 
 // Add custom filter dropdown
-function addCustomFilterDropdown() {
+async function addCustomFilterDropdown() {
+  // Check config
+  const config = await loadConfig();
+  if (!config.filtersEnabled) {
+    return;
+  }
+
   // Check if dropdown already exists
   if (document.querySelector('#gh-extension-filter-dropdown')) {
     return;
@@ -264,8 +270,58 @@ function showActiveFilterLabel() {
   grandparent.parentElement.insertBefore(label, grandparent.nextElementSibling);
 }
 
+// Inject dynamic CSS based on config
+async function injectDynamicCSS() {
+  const config = await loadConfig();
+
+  // Remove existing dynamic styles
+  const existingStyle = document.getElementById('gh-extension-dynamic-styles');
+  if (existingStyle) {
+    existingStyle.remove();
+  }
+
+  // Create new style element with precedence rules
+  // Precedence: mine > reviewed > mentioned
+  // We use specificity to enforce precedence when multiple classes are present
+  const style = document.createElement('style');
+  style.id = 'gh-extension-dynamic-styles';
+  style.textContent = `
+    /* Draft - lowest precedence, can combine with others */
+    /* Apply opacity to child elements only, not the border */
+    ${config.annotations.draft.enabled ? `
+    .gh-extension-draft > * {
+      opacity: 0.6 !important;
+    }` : ''}
+
+    /* Mentioned - lowest border precedence */
+    ${config.annotations.mentioned.enabled ? `
+    .gh-extension-mentioned {
+      border-left: 4px solid ${config.annotations.mentioned.color} !important;
+      margin-left: -4px !important;
+    }` : ''}
+
+    /* Reviewed - medium border precedence, overrides mentioned */
+    ${config.annotations.reviewed.enabled ? `
+    .gh-extension-reviewed {
+      border-left: 4px solid ${config.annotations.reviewed.color} !important;
+      margin-left: -4px !important;
+    }` : ''}
+
+    /* Mine - highest border precedence, overrides reviewed and mentioned */
+    ${config.annotations.mine.enabled ? `
+    .gh-extension-mine {
+      border-left: 4px solid ${config.annotations.mine.color} !important;
+      margin-left: -4px !important;
+    }` : ''}
+  `;
+  document.head.appendChild(style);
+}
+
 // Main initialization
-function init() {
+async function init() {
+  // Load config at start
+  const config = await loadConfig();
+
   // Always add header badge (on all GitHub pages)
   addHeaderBadge();
 
@@ -273,13 +329,17 @@ function init() {
     return;
   }
 
-  // Add custom filter dropdown on issues/pulls pages with retry
-  addCustomFilterDropdown();
+  // Inject dynamic CSS based on config
+  await injectDynamicCSS();
 
-  // Retry with delays in case DOM isn't ready
-  setTimeout(() => addCustomFilterDropdown(), 500);
-  setTimeout(() => addCustomFilterDropdown(), 1000);
-  setTimeout(() => addCustomFilterDropdown(), 2000);
+  // Add custom filter dropdown on issues/pulls pages with retry (only if enabled)
+  if (config.filtersEnabled) {
+    addCustomFilterDropdown();
+    // Retry with delays in case DOM isn't ready
+    setTimeout(() => addCustomFilterDropdown(), 500);
+    setTimeout(() => addCustomFilterDropdown(), 1000);
+    setTimeout(() => addCustomFilterDropdown(), 2000);
+  }
 
   // Show active filter label if applicable
   showActiveFilterLabel();
@@ -295,6 +355,9 @@ function init() {
 
 // Annotate PR/Issue list items with visual indicators
 async function annotateIssuesAndPRs() {
+  // Load config
+  const config = await loadConfig();
+
   // Find all PR/Issue title links
   // /pulls pages use data-hovercard-type, /issues pages use data-testid="issue-pr-title-link"
   const titleLinks = document.querySelectorAll('a[data-hovercard-type="pull_request"], a[data-hovercard-type="issue"], a[data-testid="issue-pr-title-link"]');
@@ -347,21 +410,37 @@ async function annotateIssuesAndPRs() {
       return;
     }
 
-    // Skip if already annotated
-    if (listItem.classList.contains('gh-extension-annotated')) {
-      return;
-    }
-    listItem.classList.add('gh-extension-annotated');
-
     // Get title and ID for logging
     const title = titleElement.textContent?.trim() || 'Unknown';
     const href = titleElement.getAttribute('href') || '';
     const idMatch = href.match(/\/pull\/(\d+)|\/issues\/(\d+)/);
     const id = idMatch ? (idMatch[1] || idMatch[2]) : 'Unknown';
 
+    // Check if already has annotation classes - if so, re-check assignee info but don't re-apply other classes
+    const alreadyAnnotated = listItem.classList.contains('gh-extension-annotated');
+
+    if (alreadyAnnotated) {
+      // Already processed - only re-check assignee info in case it loaded late
+      const isMine = checkIfMine(listItem, id);
+      // If it's now mine but wasn't marked before, add the class
+      const alreadyMarkedAsMine = !!listItem.querySelector('.gh-extension-mine');
+      if (isMine && !alreadyMarkedAsMine) {
+        // Find the target element (same logic as initial annotation)
+        let targetElement: HTMLElement = listItem;
+        const innerDiv = listItem.querySelector('.d-flex.Box-row--drag-hide') as HTMLElement;
+        if (innerDiv) {
+          targetElement = innerDiv;
+        }
+        targetElement.classList.add('gh-extension-mine');
+      }
+      return;
+    }
+
+    listItem.classList.add('gh-extension-annotated');
+
     // Get PR/Issue metadata - search within the list item container
     const isDraft = checkIfDraft(listItem);
-    const isMine = checkIfMine(listItem);
+    const isMine = checkIfMine(listItem, id);
 
 
     // Find the container to apply styling to
@@ -385,28 +464,34 @@ async function annotateIssuesAndPRs() {
       }
     }
 
-    // Apply annotations
+    // Apply annotations - add all applicable classes, CSS handles precedence
     let annotation = 'none';
+    const appliedClasses: string[] = [];
+
+    // Apply "mine" if applicable
     if (isMine) {
-      // Blue border for "mine" - takes precedence
       targetElement.classList.add('gh-extension-mine');
-      annotation = 'mine (blue)';
-    } else if (isDraft) {
-      // Grey out drafts not authored by me
+      appliedClasses.push('gh-extension-mine');
+      annotation = 'mine';
+    }
+
+    // Apply "draft" if applicable (can combine with mine)
+    if (isDraft && !isMine) {
       targetElement.classList.add('gh-extension-draft');
-      annotation = 'draft (muted)';
+      appliedClasses.push('gh-extension-draft');
+      if (annotation === 'none') annotation = 'draft';
     }
 
     annotations.push({ title, id, annotation });
 
     // Check for comments/reviews/mentions via hovercard and add borders
     // Do this asynchronously to avoid blocking
+    // Add all applicable classes - CSS precedence will show the right one
     checkForInteractions(titleElement, listItem, targetElement, getCurrentUser()).then(interaction => {
       if (interaction === 'reviewed' && !isMine) {
-        // Add green border for reviewed PRs (unless it's mine, blue takes precedence)
         targetElement.classList.add('gh-extension-reviewed');
-      } else if (interaction === 'mentioned' && !isMine) {
-        // Add orange border for mentioned PRs (lowest precedence)
+      }
+      if (interaction === 'mentioned' && !isMine) {
         targetElement.classList.add('gh-extension-mentioned');
       }
     });
@@ -474,13 +559,14 @@ async function checkForInteractions(titleElement: HTMLElement, listItem: HTMLEle
 
 // Check if a PR is a draft
 function checkIfDraft(item: HTMLElement): boolean {
-  // Look for draft icon with aria-label
-  const draftIcon = item.querySelector('span[aria-label="Draft Pull Request"]');
-  return !!draftIcon;
+  // Look for draft icon - can be either a span with aria-label or an SVG with class
+  const draftIconSpan = item.querySelector('span[aria-label="Draft Pull Request"]');
+  const draftIconSvg = item.querySelector('svg.octicon-git-pull-request-draft');
+  return !!(draftIconSpan || draftIconSvg);
 }
 
 // Check if a PR/Issue is "mine" (authored by me or copilot+assigned to me)
-function checkIfMine(item: HTMLElement): boolean {
+function checkIfMine(item: HTMLElement, debugId?: string): boolean {
   // Get the current user from the page
   const currentUser = getCurrentUser();
   if (!currentUser) {
@@ -491,8 +577,6 @@ function checkIfMine(item: HTMLElement): boolean {
   const allLinks = item.querySelectorAll('a');
 
   // Look for author and assignee by checking link hrefs and text
-  // GitHub issue/PR lists show author as a link to the user profile
-  // Format: /username or search links that contain author:username
   let isAuthoredByMe = false;
   let isAuthoredByCopilot = false;
   let isAssignedToMe = false;
@@ -526,16 +610,28 @@ function checkIfMine(item: HTMLElement): boolean {
     }
   });
 
-  // Also check for assignee via aria-label (e.g., "Assigned to Copilot and ismith")
-  const assigneeDivs = item.querySelectorAll('div[aria-label]');
-  assigneeDivs.forEach(div => {
-    const ariaLabel = div.getAttribute('aria-label') || '';
+  // Check for assignee links with data-hovercard-type
+  const hovercardLinks = item.querySelectorAll('a[data-hovercard-type="user"], a[data-hovercard-type="copilot"]');
+  hovercardLinks.forEach(link => {
+    const ariaLabel = link.getAttribute('aria-label') || '';
+
+    // Check for individual assignee labels (e.g., "ismith is assigned")
+    if (ariaLabel.toLowerCase().includes('is assigned') && ariaLabel.includes(currentUser)) {
+      isAssignedToMe = true;
+    }
+  });
+
+  // Also check for assignee via aria-label on any element (fallback for /pulls pages)
+  const ariaLabelElements = item.querySelectorAll('[aria-label]');
+  ariaLabelElements.forEach(element => {
+    const ariaLabel = element.getAttribute('aria-label') || '';
+
+    // Check for "assigned to" in aria-label (e.g., "Assigned to Copilot and ismith")
     if (ariaLabel.toLowerCase().includes('assigned to') && ariaLabel.includes(currentUser)) {
       isAssignedToMe = true;
     }
   });
 
-  // Return true if authored by me, OR if authored by copilot and assigned to me
   return isAuthoredByMe || (isAuthoredByCopilot && isAssignedToMe);
 }
 
@@ -563,6 +659,32 @@ if (document.readyState === 'loading') {
 } else {
   init();
 }
+
+// Listen for config updates from popup
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (request.type === 'config-updated') {
+    // Apply config changes without reloading
+    const config = request.config;
+
+    // Update CSS dynamically - this is all we need!
+    // Classes stay on elements, CSS rules determine what shows
+    injectDynamicCSS();
+
+    // Toggle filter dropdown visibility
+    const dropdown = document.getElementById('gh-extension-filter-dropdown');
+    if (dropdown) {
+      if (!config.filtersEnabled) {
+        dropdown.remove();
+      }
+    } else if (config.filtersEnabled) {
+      // Dropdown doesn't exist but should - add it
+      addCustomFilterDropdown();
+    }
+
+    // Send response to acknowledge receipt
+    sendResponse({ success: true });
+  }
+});
 
 // Watch for navigation changes (GitHub uses AJAX navigation)
 let lastUrl = location.href;

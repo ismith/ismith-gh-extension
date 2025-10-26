@@ -4,9 +4,12 @@ chrome.runtime.onInstalled.addListener(() => {
   console.log('GitHub Issue & PR Manager extension installed');
 });
 
-// Handle messages from content scripts if needed
+// Handle messages from content scripts
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  console.log('Message received in background:', request);
+  if (request.type === 'open-popup') {
+    // Open the popup programmatically
+    chrome.action.openPopup();
+  }
   sendResponse({ received: true });
   return true;
 });

@@ -4,24 +4,180 @@
   <meta charset="UTF-8">
   <style>
     body {
-      width: 300px;
+      width: 350px;
       padding: 16px;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      font-size: 14px;
+      color: #24292f;
+      background: #ffffff;
     }
+
     h1 {
       font-size: 16px;
-      margin: 0 0 12px 0;
+      font-weight: 600;
+      margin: 0 0 16px 0;
+      color: #24292f;
     }
-    p {
+
+    h2 {
       font-size: 14px;
-      color: #586069;
+      font-weight: 600;
+      margin: 16px 0 8px 0;
+      color: #24292f;
+    }
+
+    .section {
+      margin-bottom: 16px;
+    }
+
+    .checkbox-row {
+      display: flex;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .checkbox-row input[type="checkbox"] {
+      margin: 0 8px 0 0;
+    }
+
+    .checkbox-row label {
+      flex: 1;
+      cursor: pointer;
+    }
+
+    .annotation-row {
+      display: flex;
+      align-items: center;
+      margin-bottom: 8px;
+      gap: 8px;
+    }
+
+    .annotation-row input[type="checkbox"] {
       margin: 0;
+    }
+
+    .annotation-row label {
+      flex: 1;
+      cursor: pointer;
+    }
+
+    .color-preview {
+      width: 24px;
+      height: 24px;
+      border: 1px solid #d0d7de;
+      border-radius: 3px;
+    }
+
+    .color-input {
+      width: 80px;
+      font-family: monospace;
+      font-size: 12px;
+      padding: 4px;
+      border: 1px solid #d0d7de;
+      border-radius: 3px;
+    }
+
+    .reset-button {
+      padding: 4px 8px;
+      font-size: 12px;
+      border: 1px solid #d0d7de;
+      border-radius: 3px;
+      background: #f6f8fa;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .reset-button:hover {
+      background: #e1e4e8;
+    }
+
+    .reset-color-preview {
+      width: 12px;
+      height: 12px;
+      border: 1px solid #d0d7de;
+      border-radius: 2px;
+    }
+
+    .version-info {
+      margin-top: 24px;
+      padding-top: 16px;
+      border-top: 1px solid #d0d7de;
+      font-size: 12px;
+      color: #57606a;
+    }
+
+    .version-info div {
+      margin-bottom: 4px;
+    }
+
+    .version-label {
+      font-weight: 600;
+      display: inline-block;
+      width: 100px;
     }
   </style>
 </head>
 <body>
   <h1>GitHub Issue & PR Manager</h1>
-  <p>Extension is active on GitHub issue and PR pages.</p>
+
+  <div class="section">
+    <h2>Custom Filters</h2>
+    <div class="checkbox-row">
+      <input type="checkbox" id="filters-enabled" checked>
+      <label for="filters-enabled">Enabled</label>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>PR Annotations</h2>
+
+    <div class="annotation-row">
+      <input type="checkbox" id="annotation-mine" checked>
+      <label for="annotation-mine">Mine (or w Copilot)</label>
+      <div class="color-preview" id="preview-mine" style="background-color: #0969da;"></div>
+      <input type="text" class="color-input" id="color-mine" value="#0969da" maxlength="7">
+      <button class="reset-button" data-default="#0969da" data-target="color-mine">
+        <span class="reset-color-preview" style="background-color: #0969da;"></span>
+        Reset
+      </button>
+    </div>
+
+    <div class="annotation-row">
+      <input type="checkbox" id="annotation-reviewed" checked>
+      <label for="annotation-reviewed">Reviewed</label>
+      <div class="color-preview" id="preview-reviewed" style="background-color: #1a7f37;"></div>
+      <input type="text" class="color-input" id="color-reviewed" value="#1a7f37" maxlength="7">
+      <button class="reset-button" data-default="#1a7f37" data-target="color-reviewed">
+        <span class="reset-color-preview" style="background-color: #1a7f37;"></span>
+        Reset
+      </button>
+    </div>
+
+    <div class="annotation-row">
+      <input type="checkbox" id="annotation-mentioned" checked>
+      <label for="annotation-mentioned">Mentioned</label>
+      <div class="color-preview" id="preview-mentioned" style="background-color: #ffbb00;"></div>
+      <input type="text" class="color-input" id="color-mentioned" value="#ffbb00" maxlength="7">
+      <button class="reset-button" data-default="#ffbb00" data-target="color-mentioned">
+        <span class="reset-color-preview" style="background-color: #ffbb00;"></span>
+        Reset
+      </button>
+    </div>
+
+    <div class="annotation-row">
+      <input type="checkbox" id="annotation-draft" checked>
+      <label for="annotation-draft">Draft (dim)</label>
+    </div>
+  </div>
+
+  <div class="version-info">
+    <div><span class="version-label">Version:</span><span id="version-commit">-</span></div>
+    <div><span class="version-label">Commit Time:</span><span id="version-commit-time">-</span></div>
+    <div><span class="version-label">Build Time:</span><span id="version-build-time">-</span></div>
+  </div>
+
   <script src="popup.js"></script>
 </body>
 </html>
