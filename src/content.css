@@ -19,6 +19,12 @@
 /* Custom filter dropdown styles */
 .gh-extension-filter-dropdown {
   position: relative;
+  display: inline-block !important;
+  vertical-align: middle;
+  float: none !important;
+  clear: none !important;
+  flex-shrink: 0 !important;
+  flex-grow: 0 !important;
 }
 
 /* Active filter label */

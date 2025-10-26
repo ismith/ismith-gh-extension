@@ -55,33 +55,53 @@ function addHeaderBadge() {
 // Add custom filter dropdown
 function addCustomFilterDropdown() {
   // Check if dropdown already exists
-  if (document.querySelector('.gh-extension-filter-dropdown')) {
+  if (document.querySelector('#gh-extension-filter-dropdown')) {
     console.log('GitHub Issue & PR Manager: Dropdown already exists');
     return;
   }
 
-  // Find the Author filter button
-  const authorButton = document.querySelector('[data-testid="authors-anchor-button"], button[aria-label*="author" i]');
+  // Try multiple strategies to find a good insertion point
+  let container: Element | null = null;
+  let insertBefore: Element | null = null;
 
-  if (!authorButton) {
-    console.log('GitHub Issue & PR Manager: Author button not found');
-    return;
+  // Strategy 1: Find the Author filter button (works on /issues)
+  const authorButton = document.querySelector('[data-testid="authors-anchor-button"], button[aria-label*="author" i]');
+  if (authorButton && authorButton.parentElement) {
+    container = authorButton.parentElement;
+    insertBefore = authorButton;
+    console.log('GitHub Issue & PR Manager: Using Author button strategy');
   }
 
-  console.log('GitHub Issue & PR Manager: Author button found:', authorButton);
+  // Strategy 2: Find the author select menu on /pulls pages
+  if (!container) {
+    const authorSelectMenu = document.querySelector('details#author-select-menu');
+    if (authorSelectMenu && authorSelectMenu.parentElement) {
+      container = authorSelectMenu.parentElement;
+      insertBefore = authorSelectMenu;
+      console.log('GitHub Issue & PR Manager: Using author-select-menu strategy');
+    }
+  }
 
-  // Get the parent container (the filter bar)
-  const container = authorButton.parentElement;
+  // Strategy 3: Find any filter button container (fallback)
+  if (!container) {
+    const filterBar = document.querySelector('[role="group"]') ||
+                     document.querySelector('.subnav-search-context');
+    if (filterBar) {
+      container = filterBar;
+      insertBefore = filterBar.firstElementChild;
+      console.log('GitHub Issue & PR Manager: Using filter bar strategy (fallback)');
+    }
+  }
 
   if (!container) {
-    console.log('GitHub Issue & PR Manager: Could not find filter bar container');
+    console.log('GitHub Issue & PR Manager: Could not find insertion point');
     return;
   }
 
   console.log('GitHub Issue & PR Manager: Filter bar container found:', container);
 
-  // Insert dropdown before the Author button
-  insertDropdown(container, authorButton);
+  // Insert dropdown
+  insertDropdown(container, insertBefore);
 }
 
 function insertDropdown(container: Element | null, insertBefore: Element | null) {
@@ -90,55 +110,50 @@ function insertDropdown(container: Element | null, insertBefore: Element | null)
     return;
   }
 
-  // Create the custom filter dropdown matching GitHub's style
-  const dropdown = document.createElement('div');
-  dropdown.className = 'gh-extension-filter-dropdown';
-  dropdown.style.display = 'inline-block';
+  // Create the custom filter dropdown as a details element (no wrapper div)
+  const dropdown = document.createElement('details');
+  dropdown.className = 'details-reset details-overlay gh-extension-filter-dropdown';
+  dropdown.id = 'gh-extension-filter-dropdown';
   dropdown.style.marginRight = '8px';
 
   dropdown.innerHTML = `
-    <details class="details-reset details-overlay">
-      <summary role="button" aria-label="Custom filters" class="prc-Button-ButtonBase-c50BI" data-loading="false" data-size="medium" data-variant="invisible">
-        <span data-component="buttonContent" data-align="center" class="prc-Button-ButtonContent-HKbr-">
-          <span data-component="text" class="prc-Button-Label-pTQ3x">Custom filters</span>
-          <span data-component="trailingVisual" class="prc-Button-Visual-2epfX prc-Button-VisualWrap-Db-eB">
-            <svg aria-hidden="true" focusable="false" class="octicon octicon-triangle-down" viewBox="0 0 16 16" width="16" height="16" fill="currentColor" style="vertical-align: text-bottom;">
-              <path d="m4.427 7.427 3.396 3.396a.25.25 0 0 0 .354 0l3.396-3.396A.25.25 0 0 0 11.396 7H4.604a.25.25 0 0 0-.177.427Z"></path>
-            </svg>
-          </span>
+    <summary role="button" aria-label="Custom filters" class="prc-Button-ButtonBase-c50BI" data-loading="false" data-size="medium" data-variant="invisible">
+      <span data-component="buttonContent" data-align="center" class="prc-Button-ButtonContent-HKbr-">
+        <span data-component="text" class="prc-Button-Label-pTQ3x">Custom filters</span>
+        <span data-component="trailingVisual" class="prc-Button-Visual-2epfX prc-Button-VisualWrap-Db-eB">
+          <svg aria-hidden="true" focusable="false" class="octicon octicon-triangle-down" viewBox="0 0 16 16" width="16" height="16" fill="currentColor" style="vertical-align: text-bottom;">
+            <path d="m4.427 7.427 3.396 3.396a.25.25 0 0 0 .354 0l3.396-3.396A.25.25 0 0 0 11.396 7H4.604a.25.25 0 0 0-.177.427Z"></path>
+          </svg>
         </span>
-      </summary>
-      <details-menu class="SelectMenu-modal">
-        <div class="SelectMenu-list">
-          <button class="SelectMenu-item" role="menuitem" data-filter-type="my-prs">
-            <span class="SelectMenu-item-text">My PRs</span>
-          </button>
-          <button class="SelectMenu-item" role="menuitem" data-filter-type="my-issues">
-            <span class="SelectMenu-item-text">My Issues</span>
-          </button>
-          <button class="SelectMenu-item" role="menuitem" data-filter-type="prs-to-review">
-            <span class="SelectMenu-item-text">PRs to Review</span>
-          </button>
-          <button class="SelectMenu-item" role="menuitem" data-filter-type="prs-im-reviewing">
-            <span class="SelectMenu-item-text">PRs I'm Reviewing</span>
-          </button>
-        </div>
-      </details-menu>
-    </details>
+      </span>
+    </summary>
+    <details-menu class="SelectMenu-modal">
+      <div class="SelectMenu-list">
+        <button class="SelectMenu-item" role="menuitem" data-filter-type="my-prs">
+          <span class="SelectMenu-item-text">My PRs</span>
+        </button>
+        <button class="SelectMenu-item" role="menuitem" data-filter-type="my-issues">
+          <span class="SelectMenu-item-text">My Issues</span>
+        </button>
+        <button class="SelectMenu-item" role="menuitem" data-filter-type="prs-to-review">
+          <span class="SelectMenu-item-text">PRs to Review</span>
+        </button>
+        <button class="SelectMenu-item" role="menuitem" data-filter-type="prs-im-reviewing">
+          <span class="SelectMenu-item-text">PRs I'm Reviewing</span>
+        </button>
+      </div>
+    </details-menu>
   `;
 
   // Add click handlers for each filter option
   const buttons = dropdown.querySelectorAll('button[data-filter-type]');
-  const detailsElement = dropdown.querySelector('details');
 
   buttons.forEach(button => {
     button.addEventListener('click', (e) => {
       e.preventDefault();
       const filterType = (button as HTMLElement).dataset.filterType;
       applyCustomFilter(filterType!);
-      if (detailsElement) {
-        detailsElement.removeAttribute('open');
-      }
+      dropdown.removeAttribute('open');
     });
   });
 
