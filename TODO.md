@@ -29,3 +29,7 @@
 - [ ] Green border if I've commented/reviewed (via API)
 - [ ] Blue takes precedence over green
 - [ ] Use GitHub's color palette
+
+## 5. Create extension icon/badge
+- [ ] Design or generate icon files (16x16, 48x48, 128x128)
+- [ ] Add icons to src/icons/ directory

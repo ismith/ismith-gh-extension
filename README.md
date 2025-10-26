@@ -48,16 +48,24 @@ A Chrome extension (Manifest V3) that enhances GitHub's issue and pull request l
 
 6. The extension should now be installed and active on GitHub pages
 
-### Updating the Extension
+### Reloading the Extension After Changes
 
-After making changes:
+After making code changes and rebuilding:
 
 1. Rebuild the extension:
    ```bash
    npm run build
    ```
 
-2. Go to `chrome://extensions/` and click the refresh icon on the extension card
+2. Open Chrome and navigate to `chrome://extensions/`
+
+3. Find the "GitHub Issue & PR Manager" extension card
+
+4. Click the refresh/reload icon (circular arrow) on the extension card
+
+5. Reload any open GitHub pages to see your changes take effect
+
+**Tip**: If you're actively developing, run `npm run dev` in a terminal to automatically rebuild on file changes. You'll still need to manually reload the extension in Chrome after each rebuild.
 
 ## Project Structure
 
