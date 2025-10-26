@@ -1,5 +1,21 @@
 /* Styles for GitHub Issue & PR Manager */
 
+/* Header badge styles */
+.gh-extension-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  margin-right: 8px;
+  border-radius: 50%;
+  transition: opacity 0.2s ease;
+  vertical-align: middle;
+}
+
+.gh-extension-badge:hover {
+  opacity: 0.8;
+}
+
 /* Custom filter dropdown styles will go here */
 
 /* Visual annotation styles */

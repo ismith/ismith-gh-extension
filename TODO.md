@@ -33,3 +33,7 @@
 ## 5. Create extension icon/badge
 - [x] Design or generate icon files (16x16, 48x48, 128x128)
 - [x] Add icons to src/icons/ directory
+
+## 6. Add extension icon badge to GitHub header
+- [x] Insert icon badge to the left of user avatar in top-right header
+- [x] Make it clickable to open extension popup or perform action

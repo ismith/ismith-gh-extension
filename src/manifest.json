@@ -16,13 +16,17 @@
   "content_scripts": [
     {
       "matches": [
-        "https://github.com/*/issues*",
-        "https://github.com/*/pulls*",
-        "https://*.ghe.com/*/issues*",
-        "https://*.ghe.com/*/pulls*"
+        "https://github.com/*",
+        "https://*.ghe.com/*"
       ],
       "js": ["content.js"],
       "css": ["content.css"]
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["icons/*.png"],
+      "matches": ["https://github.com/*", "https://*.ghe.com/*"]
     }
   ],
   "action": {
