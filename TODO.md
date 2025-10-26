@@ -41,3 +41,8 @@
 ## 7. Bug fixes and improvements
 - [x] Fix: Custom filter button shows on /issues but not /pulls
 - [x] Fix: Annotations work on /pulls but not /issues
+
+## 8. Code cleanup and refactoring
+- [ ] Review and remove redundant code paths and fallback selectors
+- [ ] Clean up query selectors that were added during debugging but may not be needed
+- [ ] Simplify insertion logic if possible (multiple strategies may have redundancy)
