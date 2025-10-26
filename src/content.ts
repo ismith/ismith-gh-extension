@@ -78,7 +78,7 @@ function addCustomFilterDropdown() {
     if (authorSelectMenu && authorSelectMenu.parentElement) {
       container = authorSelectMenu.parentElement;
       insertBefore = authorSelectMenu;
-      console.log('GitHub Issue & PR Manager: Using author-select-menu strategy');
+      console.log('GitHub Issue & PR Manager: Using author-select-menu strategy, inserting before author');
     }
   }
 
@@ -110,40 +110,73 @@ function insertDropdown(container: Element | null, insertBefore: Element | null)
     return;
   }
 
+  // Detect if we're on /pulls or /issues page
+  const isPullsPage = window.location.pathname.includes('/pulls');
+
   // Create the custom filter dropdown as a details element (no wrapper div)
   const dropdown = document.createElement('details');
-  dropdown.className = 'details-reset details-overlay gh-extension-filter-dropdown';
   dropdown.id = 'gh-extension-filter-dropdown';
-  dropdown.style.marginRight = '8px';
 
-  dropdown.innerHTML = `
-    <summary role="button" aria-label="Custom filters" class="prc-Button-ButtonBase-c50BI" data-loading="false" data-size="medium" data-variant="invisible">
-      <span data-component="buttonContent" data-align="center" class="prc-Button-ButtonContent-HKbr-">
-        <span data-component="text" class="prc-Button-Label-pTQ3x">Custom filters</span>
-        <span data-component="trailingVisual" class="prc-Button-Visual-2epfX prc-Button-VisualWrap-Db-eB">
-          <svg aria-hidden="true" focusable="false" class="octicon octicon-triangle-down" viewBox="0 0 16 16" width="16" height="16" fill="currentColor" style="vertical-align: text-bottom;">
-            <path d="m4.427 7.427 3.396 3.396a.25.25 0 0 0 .354 0l3.396-3.396A.25.25 0 0 0 11.396 7H4.604a.25.25 0 0 0-.177.427Z"></path>
-          </svg>
+  if (isPullsPage) {
+    // Use btn-link structure for /pulls pages (matches Author dropdown)
+    dropdown.className = 'details-reset details-overlay d-inline-block position-relative px-3 gh-extension-filter-dropdown';
+    dropdown.innerHTML = `
+      <summary class="btn-link" title="Custom filters" role="button">
+        Custom filters
+        <span class="dropdown-caret hide-sm"></span>
+      </summary>
+      <details-menu class="SelectMenu SelectMenu--hasFilter" role="menu">
+        <div class="SelectMenu-modal">
+          <div class="SelectMenu-list">
+            <button class="SelectMenu-item" role="menuitem" data-filter-type="my-prs">
+              <span class="SelectMenu-item-text">My PRs</span>
+            </button>
+            <button class="SelectMenu-item" role="menuitem" data-filter-type="my-issues">
+              <span class="SelectMenu-item-text">My Issues</span>
+            </button>
+            <button class="SelectMenu-item" role="menuitem" data-filter-type="prs-to-review">
+              <span class="SelectMenu-item-text">PRs to Review</span>
+            </button>
+            <button class="SelectMenu-item" role="menuitem" data-filter-type="prs-im-reviewing">
+              <span class="SelectMenu-item-text">PRs I'm Reviewing</span>
+            </button>
+          </div>
+        </div>
+      </details-menu>
+    `;
+  } else {
+    // Use prc-Button structure for /issues pages (original working version)
+    dropdown.className = 'details-reset details-overlay gh-extension-filter-dropdown';
+    dropdown.style.marginRight = '8px';
+    dropdown.innerHTML = `
+      <summary role="button" aria-label="Custom filters" class="prc-Button-ButtonBase-c50BI" data-loading="false" data-size="medium" data-variant="invisible">
+        <span data-component="buttonContent" data-align="center" class="prc-Button-ButtonContent-HKbr-">
+          <span data-component="text" class="prc-Button-Label-pTQ3x">Custom filters</span>
+          <span data-component="trailingVisual" class="prc-Button-Visual-2epfX prc-Button-VisualWrap-Db-eB">
+            <svg aria-hidden="true" focusable="false" class="octicon octicon-triangle-down" viewBox="0 0 16 16" width="16" height="16" fill="currentColor" style="vertical-align: text-bottom;">
+              <path d="m4.427 7.427 3.396 3.396a.25.25 0 0 0 .354 0l3.396-3.396A.25.25 0 0 0 11.396 7H4.604a.25.25 0 0 0-.177.427Z"></path>
+            </svg>
+          </span>
         </span>
-      </span>
-    </summary>
-    <details-menu class="SelectMenu-modal">
-      <div class="SelectMenu-list">
-        <button class="SelectMenu-item" role="menuitem" data-filter-type="my-prs">
-          <span class="SelectMenu-item-text">My PRs</span>
-        </button>
-        <button class="SelectMenu-item" role="menuitem" data-filter-type="my-issues">
-          <span class="SelectMenu-item-text">My Issues</span>
-        </button>
-        <button class="SelectMenu-item" role="menuitem" data-filter-type="prs-to-review">
-          <span class="SelectMenu-item-text">PRs to Review</span>
-        </button>
-        <button class="SelectMenu-item" role="menuitem" data-filter-type="prs-im-reviewing">
-          <span class="SelectMenu-item-text">PRs I'm Reviewing</span>
-        </button>
-      </div>
-    </details-menu>
-  `;
+      </summary>
+      <details-menu class="SelectMenu-modal">
+        <div class="SelectMenu-list">
+          <button class="SelectMenu-item" role="menuitem" data-filter-type="my-prs">
+            <span class="SelectMenu-item-text">My PRs</span>
+          </button>
+          <button class="SelectMenu-item" role="menuitem" data-filter-type="my-issues">
+            <span class="SelectMenu-item-text">My Issues</span>
+          </button>
+          <button class="SelectMenu-item" role="menuitem" data-filter-type="prs-to-review">
+            <span class="SelectMenu-item-text">PRs to Review</span>
+          </button>
+          <button class="SelectMenu-item" role="menuitem" data-filter-type="prs-im-reviewing">
+            <span class="SelectMenu-item-text">PRs I'm Reviewing</span>
+          </button>
+        </div>
+      </details-menu>
+    `;
+  }
 
   // Add click handlers for each filter option
   const buttons = dropdown.querySelectorAll('button[data-filter-type]');
@@ -161,7 +194,7 @@ function insertDropdown(container: Element | null, insertBefore: Element | null)
   if (insertBefore) {
     container.insertBefore(dropdown, insertBefore);
   } else {
-    container.insertBefore(dropdown, container.firstChild);
+    container.appendChild(dropdown);
   }
   console.log('GitHub Issue & PR Manager: Custom filter dropdown added');
 }
