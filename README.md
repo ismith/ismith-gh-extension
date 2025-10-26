@@ -4,9 +4,21 @@ A Chrome extension (Manifest V3) that enhances GitHub's issue and pull request l
 
 ## Features
 
-- Custom filter dropdown for common search queries
+- **Custom filter dropdown** for common search queries on issues/pulls pages:
+  - **My PRs**: `(author:@me OR (author:app/copilot-swe-agent assignee:@me))`
+  - **My Issues**: `((author:@me no:assignee) OR assignee:@me)`
+  - **PRs to Review**: Non-draft PRs with no reviews, excluding your own
+  - **PRs I'm Reviewing**: PRs where you've commented or reviewed
 - Visual annotations for issues and PRs based on ownership and participation
 - Works on both github.com and GitHub Enterprise (*.ghe.com)
+
+### Understanding "My PRs"
+
+In this extension, "My PRs" includes:
+- PRs authored by you (`author:@me`)
+- PRs authored by GitHub Copilot and assigned to you (`author:app/copilot-swe-agent assignee:@me`)
+
+This is because PRs "authored" by Copilot are, in every real sense, also authored by the human instructing Copilot. When working with Copilot-generated PRs, the human developer is the true author who directed the work.
 
 ## Development
 

@@ -16,7 +16,35 @@
   opacity: 0.8;
 }
 
-/* Custom filter dropdown styles will go here */
+/* Custom filter dropdown styles */
+.gh-extension-filter-dropdown {
+  position: relative;
+}
+
+.gh-extension-filter-dropdown .SelectMenu-modal {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 4px;
+  z-index: 99;
+}
+
+.gh-extension-filter-dropdown .SelectMenu-list {
+  min-width: 180px;
+}
+
+.gh-extension-filter-dropdown .SelectMenu-item {
+  width: 100%;
+  text-align: left;
+  border: none;
+  background: none;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.gh-extension-filter-dropdown .SelectMenu-item:hover {
+  background-color: var(--color-canvas-subtle, #f6f8fa);
+}
 
 /* Visual annotation styles */
 .gh-extension-mine {
