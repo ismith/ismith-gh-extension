@@ -364,12 +364,15 @@ async function annotateIssuesAndPRs() {
 
     annotations.push({ title, id, annotation });
 
-    // Check for comments/reviews via API and add green border if applicable
+    // Check for comments/reviews/mentions via hovercard and add borders
     // Do this asynchronously to avoid blocking
-    checkForReviews(titleElement, listItem, targetElement, getCurrentUser()).then(hasReviewed => {
-      if (hasReviewed && !isMine) {
+    checkForInteractions(titleElement, listItem, targetElement, getCurrentUser()).then(interaction => {
+      if (interaction === 'reviewed' && !isMine) {
         // Add green border for reviewed PRs (unless it's mine, blue takes precedence)
         targetElement.classList.add('gh-extension-reviewed');
+      } else if (interaction === 'mentioned' && !isMine) {
+        // Add orange border for mentioned PRs (lowest precedence)
+        targetElement.classList.add('gh-extension-mentioned');
       }
     });
   });
@@ -380,20 +383,21 @@ async function annotateIssuesAndPRs() {
   }
 }
 
-// Check if user has reviewed or commented on a PR
-async function checkForReviews(titleElement: HTMLElement, listItem: HTMLElement, targetElement: HTMLElement, currentUser: string | null): Promise<boolean> {
+// Check if user has interacted with a PR (reviewed, commented, or been mentioned)
+// Returns: 'reviewed' for reviews/comments, 'mentioned' for mentions, null for no interaction
+async function checkForInteractions(titleElement: HTMLElement, listItem: HTMLElement, targetElement: HTMLElement, currentUser: string | null): Promise<'reviewed' | 'mentioned' | null> {
   if (!currentUser) {
-    return false;
+    return null;
   }
 
   // Get the hovercard URL from the title element
   const hovercardUrl = titleElement.getAttribute('data-hovercard-url');
   if (!hovercardUrl) {
-    return false;
+    return null;
   }
 
   try {
-    // Fetch the hovercard - it already contains review/comment info
+    // Fetch the hovercard - it already contains review/comment/mention info
     const response = await fetch(hovercardUrl, {
       headers: {
         'Accept': 'text/html',
@@ -407,24 +411,34 @@ async function checkForReviews(titleElement: HTMLElement, listItem: HTMLElement,
       // Check if the hovercard contains indicators that the user has interacted with the PR
       // Look for "You" combined with key phrases indicating participation
       const hasYou = html.includes('You');
-      const hasInteraction = html.includes('are assigned to') ||
-                            html.includes('commented on') ||
-                            html.includes('left a review') ||
-                            html.includes('reviewed') ||
-                            html.includes('approved');
 
-      if (hasYou && hasInteraction) {
+      // Check for review/comment interactions (higher precedence)
+      const hasReviewInteraction = html.includes('are assigned to') ||
+                                   html.includes('commented on') ||
+                                   html.includes('left a review') ||
+                                   html.includes('reviewed') ||
+                                   html.includes('approved');
+
+      if (hasYou && hasReviewInteraction) {
         console.log(`Found review/comment indicator in hovercard for ${hovercardUrl}`);
-        return true;
+        return 'reviewed';
+      }
+
+      // Check for mentions (lower precedence)
+      const hasMention = html.includes('mentioned');
+
+      if (hasYou && hasMention) {
+        console.log(`Found mention indicator in hovercard for ${hovercardUrl}`);
+        return 'mentioned';
       }
     } else {
       console.log(`Hovercard fetch failed:`, response.status, response.statusText);
     }
 
-    return false;
+    return null;
   } catch (error) {
     console.error(`Error fetching hovercard:`, error);
-    return false;
+    return null;
   }
 }
 
