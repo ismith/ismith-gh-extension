@@ -21,6 +21,19 @@
   position: relative;
 }
 
+/* Active filter label */
+.gh-extension-active-filter-label {
+  display: block;
+  width: 100%;
+  font-size: var(--text-body-size-small);
+  font-weight: 400;
+  color: var(--fgColor-muted, var(--color-fg-muted));
+  margin-top: 0;
+  margin-bottom: 0;
+  padding-left: 4px;
+  clear: both;
+}
+
 /* Match GitHub's invisible button styling */
 .gh-extension-filter-dropdown summary {
   list-style: none;

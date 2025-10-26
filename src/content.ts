@@ -179,6 +179,59 @@ function applyCustomFilter(filterType: string) {
   window.location.href = newUrl;
 }
 
+// Display active filter label below search box
+function showActiveFilterLabel() {
+  // Remove any existing label first
+  const existingLabel = document.querySelector('.gh-extension-active-filter-label');
+  if (existingLabel) {
+    existingLabel.remove();
+  }
+
+  // Get the current search query
+  const currentUrl = new URL(window.location.href);
+  const currentQuery = currentUrl.searchParams.get('q') || '';
+
+  // Map queries to filter names
+  const filterMap: { [key: string]: string } = {
+    'is:pr is:open (author:@me OR (author:app/copilot-swe-agent assignee:@me))': 'My PRs',
+    'is:issue is:open ((author:@me no:assignee) OR assignee:@me)': 'My Issues',
+    'is:pr is:open (-author:@me (-author:app/copilot-swe-agent -assignee:@me)) draft:false review:none': 'PRs to Review',
+    'is:pr is:open (commenter:@me OR reviewed-by:@me)': "PRs I'm Reviewing"
+  };
+
+  const filterName = filterMap[currentQuery];
+
+  // Find the repository div
+  const repositoryDiv = document.querySelector('#repository');
+  if (!repositoryDiv) {
+    console.log('GitHub Issue & PR Manager: #repository div not found');
+    return;
+  }
+
+  // Go two levels up from #repository
+  const grandparent = repositoryDiv.parentElement?.parentElement;
+  if (!grandparent || !grandparent.parentElement) {
+    console.log('GitHub Issue & PR Manager: Could not find grandparent container');
+    return;
+  }
+
+  // Create the label (empty or with text)
+  const label = document.createElement('div');
+  label.className = 'gh-extension-active-filter-label';
+
+  if (filterName) {
+    label.textContent = `Active filter: ${filterName}`;
+    console.log('GitHub Issue & PR Manager: Active filter label added:', filterName);
+  } else {
+    // Empty placeholder to maintain consistent spacing
+    label.innerHTML = '&nbsp;';
+    console.log('GitHub Issue & PR Manager: Empty filter label placeholder added');
+  }
+
+  // Insert right after the grandparent div
+  grandparent.parentElement.insertBefore(label, grandparent.nextElementSibling);
+}
+
 // Main initialization
 function init() {
   // Always add header badge (on all GitHub pages)
@@ -197,6 +250,11 @@ function init() {
   setTimeout(() => addCustomFilterDropdown(), 500);
   setTimeout(() => addCustomFilterDropdown(), 1000);
   setTimeout(() => addCustomFilterDropdown(), 2000);
+
+  // Show active filter label if applicable
+  showActiveFilterLabel();
+  setTimeout(() => showActiveFilterLabel(), 500);
+  setTimeout(() => showActiveFilterLabel(), 1000);
 
   // TODO: Add visual annotations to issues/PRs
 }
