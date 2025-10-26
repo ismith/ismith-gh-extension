@@ -266,7 +266,8 @@ function init() {
 // Annotate PR/Issue list items with visual indicators
 async function annotateIssuesAndPRs() {
   // Find all PR/Issue title links
-  const titleLinks = document.querySelectorAll('a[data-hovercard-type="pull_request"], a[data-hovercard-type="issue"]');
+  // /pulls pages use data-hovercard-type, /issues pages use data-testid="issue-pr-title-link"
+  const titleLinks = document.querySelectorAll('a[data-hovercard-type="pull_request"], a[data-hovercard-type="issue"], a[data-testid="issue-pr-title-link"]');
 
   if (titleLinks.length === 0) {
     console.log('GitHub Issue & PR Manager: No PR/Issue list items found');
@@ -282,9 +283,17 @@ async function annotateIssuesAndPRs() {
 
     // Find the list item container - go up to find the row
     // The link itself might have an id like "issue_2259_link", but we need the parent row
-    // Skip elements with IDs ending in "_link" and go up to the actual row container
-    let listItem = titleElement.closest('.js-issue-row') as HTMLElement;
+    // Try multiple selectors based on different GitHub page layouts
 
+    // First try: li[role="listitem"] (used on /issues pages)
+    let listItem = titleElement.closest('li[role="listitem"]') as HTMLElement;
+
+    // Second try: .js-issue-row (used on some /pulls pages)
+    if (!listItem) {
+      listItem = titleElement.closest('.js-issue-row') as HTMLElement;
+    }
+
+    // Third try: .Box-row
     if (!listItem) {
       listItem = titleElement.closest('.Box-row') as HTMLElement;
     }
