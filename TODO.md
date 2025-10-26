@@ -15,13 +15,13 @@
 - [x] Focus on /issues and /pulls views
 
 ## 3. Add "Custom filter" dropdown with search shortcuts
-- [ ] Add dropdown to the left of existing "Author" dropdown
-- [ ] Three filter options that append to search:
-  - [ ] Open PRs: `author:@me OR assignee:@me`
-  - [ ] Open Issues: `author:@me OR assignee:@me`
-  - [ ] PRs to review: NOT author:@me, NOT (copilot+assigned to me), NOT draft, no reviews yet
-- [ ] Visible on both /issues and /pulls pages
-- [ ] Execute searches on /issues page (redirect from /pulls if needed)
+- [x] Add dropdown to the left of existing "Author" dropdown
+- [x] Three filter options that append to search:
+  - [x] Open PRs: `author:@me OR assignee:@me`
+  - [x] Open Issues: `author:@me OR assignee:@me`
+  - [x] PRs to review: NOT author:@me, NOT (copilot+assigned to me), NOT draft, no reviews yet
+- [x] Visible on both /issues and /pulls pages
+- [x] Execute searches on /issues page (redirect from /pulls if needed)
 
 ## 4. Add visual annotations to PR/Issue list items
 - [ ] Grey out drafts not authored by me (or copilot at my request)

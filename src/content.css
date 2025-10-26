@@ -84,13 +84,13 @@
 
 /* Visual annotation styles */
 .gh-extension-mine {
-  border-left: 3px solid var(--color-accent-emphasis) !important;
-  padding-left: 8px !important;
+  border-left: 4px solid #0969da !important;
+  margin-left: -4px !important;
 }
 
 .gh-extension-reviewed {
-  border-left: 3px solid var(--color-success-emphasis) !important;
-  padding-left: 8px !important;
+  border-left: 4px solid #1a7f37 !important;
+  margin-left: -4px !important;
 }
 
 .gh-extension-draft {

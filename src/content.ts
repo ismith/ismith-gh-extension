@@ -256,7 +256,206 @@ function init() {
   setTimeout(() => showActiveFilterLabel(), 500);
   setTimeout(() => showActiveFilterLabel(), 1000);
 
-  // TODO: Add visual annotations to issues/PRs
+  // Add visual annotations to issues/PRs
+  annotateIssuesAndPRs();
+  setTimeout(() => annotateIssuesAndPRs(), 500);
+  setTimeout(() => annotateIssuesAndPRs(), 1000);
+  setTimeout(() => annotateIssuesAndPRs(), 2000);
+}
+
+// Annotate PR/Issue list items with visual indicators
+async function annotateIssuesAndPRs() {
+  // Find all PR/Issue title links
+  const titleLinks = document.querySelectorAll('a[data-hovercard-type="pull_request"], a[data-hovercard-type="issue"]');
+
+  if (titleLinks.length === 0) {
+    console.log('GitHub Issue & PR Manager: No PR/Issue list items found');
+    return;
+  }
+
+  console.log(`GitHub Issue & PR Manager: Found ${titleLinks.length} items to annotate`);
+
+  const annotations: Array<{title: string, id: string, annotation: string}> = [];
+
+  titleLinks.forEach(async (link) => {
+    const titleElement = link as HTMLElement;
+
+    // Find the list item container - go up to find the row
+    // The link itself might have an id like "issue_2259_link", but we need the parent row
+    // Skip elements with IDs ending in "_link" and go up to the actual row container
+    let listItem = titleElement.closest('.js-issue-row') as HTMLElement;
+
+    if (!listItem) {
+      listItem = titleElement.closest('.Box-row') as HTMLElement;
+    }
+
+    if (!listItem) {
+      // Look for a div with id starting with "issue_" or "pull_request_" but NOT ending with "_link"
+      let current = titleElement.parentElement;
+      while (current) {
+        const id = current.id || '';
+        if ((id.startsWith('issue_') || id.startsWith('pull_request_')) && !id.endsWith('_link')) {
+          listItem = current as HTMLElement;
+          break;
+        }
+        current = current.parentElement;
+      }
+    }
+
+    // As a last resort, go up several levels from the title
+    if (!listItem) {
+      listItem = (titleElement.parentElement?.parentElement?.parentElement) as HTMLElement;
+    }
+
+    if (!listItem) {
+      console.log('GitHub Issue & PR Manager: Could not find list item container for', titleElement);
+      return;
+    }
+
+    // Skip if already annotated
+    if (listItem.classList.contains('gh-extension-annotated')) {
+      return;
+    }
+    listItem.classList.add('gh-extension-annotated');
+
+    // Get title and ID for logging
+    const title = titleElement.textContent?.trim() || 'Unknown';
+    const href = titleElement.getAttribute('href') || '';
+    const idMatch = href.match(/\/pull\/(\d+)|\/issues\/(\d+)/);
+    const id = idMatch ? (idMatch[1] || idMatch[2]) : 'Unknown';
+
+    // Get PR/Issue metadata - search within the list item container
+    const isDraft = checkIfDraft(listItem);
+    const isMine = checkIfMine(listItem);
+
+
+    // Find the container to apply styling to
+    // The Box-row might not show borders well, so let's target the inner content div
+    let targetElement: HTMLElement = listItem;
+
+    // Look for the main content area inside the Box-row (usually the first child div)
+    const innerDiv = listItem.querySelector('.d-flex.Box-row--drag-hide') as HTMLElement;
+    if (innerDiv) {
+      targetElement = innerDiv;
+    }
+
+    // For drafts, keep the same logic but applied to the better target
+    if (isDraft) {
+      const draftIcon = listItem.querySelector('span[aria-label="Draft Pull Request"]');
+      if (draftIcon) {
+        const container = draftIcon.parentElement?.parentElement;
+        if (container) {
+          targetElement = container as HTMLElement;
+        }
+      }
+    }
+
+    // Apply annotations
+    let annotation = 'none';
+    if (isMine) {
+      // Blue border for "mine" - takes precedence
+      targetElement.classList.add('gh-extension-mine');
+      annotation = 'mine (blue)';
+    } else if (isDraft) {
+      // Grey out drafts not authored by me
+      targetElement.classList.add('gh-extension-draft');
+      annotation = 'draft (muted)';
+    }
+
+    annotations.push({ title, id, annotation });
+
+    // TODO: Check for comments/reviews via API and add green border if applicable
+  });
+
+  // Log all annotations in a table
+  if (annotations.length > 0) {
+    console.table(annotations);
+  }
+}
+
+// Check if a PR is a draft
+function checkIfDraft(item: HTMLElement): boolean {
+  // Look for draft icon with aria-label
+  const draftIcon = item.querySelector('span[aria-label="Draft Pull Request"]');
+  return !!draftIcon;
+}
+
+// Check if a PR/Issue is "mine" (authored by me or copilot+assigned to me)
+function checkIfMine(item: HTMLElement): boolean {
+  // Get the current user from the page
+  const currentUser = getCurrentUser();
+  if (!currentUser) {
+    return false;
+  }
+
+  // Find all links in the item
+  const allLinks = item.querySelectorAll('a');
+
+  // Look for author and assignee by checking link hrefs and text
+  // GitHub issue/PR lists show author as a link to the user profile
+  // Format: /username or search links that contain author:username
+  let isAuthoredByMe = false;
+  let isAuthoredByCopilot = false;
+  let isAssignedToMe = false;
+
+  allLinks.forEach(link => {
+    const href = link.getAttribute('href') || '';
+    const text = link.textContent?.trim() || '';
+
+    // Check if link is to current user's profile
+    if (href === `/${currentUser}`) {
+      isAuthoredByMe = true;
+    }
+
+    // Check for author search links (e.g., "author:ismith" in href)
+    if (href.includes(`author%3A${currentUser}`) || href.includes(`author:${currentUser}`)) {
+      isAuthoredByMe = true;
+    }
+
+    // Check for copilot authorship
+    if (href.includes('apps/copilot-swe-agent') ||
+        href.includes('author%3A%40copilot') ||
+        href.includes('author:@copilot') ||
+        text === 'copilot-swe-agent[bot]' ||
+        text.toLowerCase() === 'copilot') {
+      isAuthoredByCopilot = true;
+    }
+
+    // Check for assignee (look for "assignee:" in href or assignee section)
+    if (href.includes(`assignee%3A${currentUser}`) || href.includes(`assignee:${currentUser}`)) {
+      isAssignedToMe = true;
+    }
+  });
+
+  // Also check for assignee via aria-label (e.g., "Assigned to Copilot and ismith")
+  const assigneeDivs = item.querySelectorAll('div[aria-label]');
+  assigneeDivs.forEach(div => {
+    const ariaLabel = div.getAttribute('aria-label') || '';
+    if (ariaLabel.toLowerCase().includes('assigned to') && ariaLabel.includes(currentUser)) {
+      isAssignedToMe = true;
+    }
+  });
+
+  // Return true if authored by me, OR if authored by copilot and assigned to me
+  return isAuthoredByMe || (isAuthoredByCopilot && isAssignedToMe);
+}
+
+// Get the current logged-in user
+function getCurrentUser(): string | null {
+  // Try to find the current user from the avatar link in the header
+  const userMenu = document.querySelector('meta[name="user-login"]');
+  if (userMenu) {
+    return userMenu.getAttribute('content');
+  }
+
+  // Fallback: check the header avatar
+  const avatarLink = document.querySelector('header a[href^="/"]:has(img.avatar)');
+  if (avatarLink) {
+    const href = avatarLink.getAttribute('href');
+    return href?.replace(/^\//, '').split('/')[0] || null;
+  }
+
+  return null;
 }
 
 // Run on page load
