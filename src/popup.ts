@@ -195,4 +195,22 @@ document.addEventListener('DOMContentLoaded', async () => {
       saveConfig(config);
     });
   });
+
+  // Click to copy version values
+  document.querySelectorAll('.version-value').forEach(element => {
+    element.addEventListener('click', async () => {
+      const text = element.textContent || '';
+      try {
+        await navigator.clipboard.writeText(text);
+
+        // Show "Copied!" feedback
+        element.classList.add('copied');
+        setTimeout(() => {
+          element.classList.remove('copied');
+        }, 1500);
+      } catch (err) {
+        console.error('Failed to copy:', err);
+      }
+    });
+  });
 });

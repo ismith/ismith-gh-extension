@@ -145,6 +145,45 @@
       display: inline-block;
       width: 100px;
     }
+
+    .version-value {
+      cursor: pointer;
+      position: relative;
+      transition: text-decoration 0.2s ease;
+    }
+
+    .version-value:hover {
+      text-decoration: underline;
+    }
+
+    .version-value::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      bottom: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 4px 8px;
+      background: var(--gh-bg-color);
+      color: var(--gh-secondary-fg);
+      border: 1px solid var(--gh-border-color);
+      font-size: 11px;
+      border-radius: 4px;
+      white-space: nowrap;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+      margin-bottom: 4px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    .version-value:hover::after {
+      opacity: 1;
+    }
+
+    .version-value.copied::after {
+      content: 'Copied!';
+      opacity: 1;
+    }
   </style>
 </head>
 <body>
@@ -201,9 +240,9 @@
   </div>
 
   <div class="version-info">
-    <div><span class="version-label">Version:</span><span id="version-commit">-</span></div>
-    <div><span class="version-label">Commit Time:</span><span id="version-commit-time">-</span></div>
-    <div><span class="version-label">Build Time:</span><span id="version-build-time">-</span></div>
+    <div><span class="version-label">Version:</span><span id="version-commit" class="version-value" data-tooltip="Click to copy">-</span></div>
+    <div><span class="version-label">Commit Time:</span><span id="version-commit-time" class="version-value" data-tooltip="Click to copy">-</span></div>
+    <div><span class="version-label">Build Time:</span><span id="version-build-time" class="version-value" data-tooltip="Click to copy">-</span></div>
   </div>
 
   <script src="popup.js"></script>
