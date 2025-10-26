@@ -24,11 +24,11 @@
 - [x] Execute searches on /issues page (redirect from /pulls if needed)
 
 ## 4. Add visual annotations to PR/Issue list items
-- [ ] Grey out drafts not authored by me (or copilot at my request)
-- [ ] Blue border for "mine" (author:@me or copilot+assignee:@me)
+- [x] Grey out drafts not authored by me (or copilot at my request)
+- [x] Blue border for "mine" (author:@me or copilot+assignee:@me)
 - [ ] Green border if I've commented/reviewed (via API)
-- [ ] Blue takes precedence over green
-- [ ] Use GitHub's color palette
+- [x] Blue takes precedence over green
+- [x] Use GitHub's color palette
 
 ## 5. Create extension icon/badge
 - [x] Design or generate icon files (16x16, 48x48, 128x128)
@@ -37,3 +37,6 @@
 ## 6. Add extension icon badge to GitHub header
 - [x] Insert icon badge to the left of user avatar in top-right header
 - [x] Make it clickable to open extension popup or perform action
+
+## 7. Bug fixes and improvements
+- [ ] Fix: Custom filter button shows on /issues but not /pulls
