@@ -4,7 +4,9 @@
   "version": "1.0.0",
   "description": "Custom filters and annotations for GitHub issues and pull requests",
   "permissions": [
-    "storage"
+    "storage",
+    "scripting",
+    "activeTab"
   ],
   "host_permissions": [
     "https://github.com/*",

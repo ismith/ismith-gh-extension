@@ -31,8 +31,70 @@ async function loadVersionInfo() {
   }
 }
 
+// Load GitHub styles from the active tab
+async function loadGitHubStyles() {
+  try {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (!tab?.id || !tab.url?.includes('github.com')) {
+      return; // Not on GitHub, use defaults
+    }
+
+    // Execute script in the GitHub tab to get computed styles
+    const results = await chrome.scripting.executeScript({
+      target: { tabId: tab.id },
+      func: () => {
+        const body = document.body;
+        const bodyStyles = window.getComputedStyle(body);
+
+        // Try to find a button or input to get their styles
+        const button = document.querySelector('button, .btn') as HTMLElement;
+        const input = document.querySelector('input[type="text"], input[type="search"]') as HTMLElement;
+
+        const buttonStyles = button ? window.getComputedStyle(button) : null;
+        const inputStyles = input ? window.getComputedStyle(input) : null;
+
+        return {
+          bgColor: bodyStyles.backgroundColor,
+          fgColor: bodyStyles.color,
+          fontFamily: bodyStyles.fontFamily,
+          borderColor: inputStyles?.borderColor || bodyStyles.borderColor || 'rgb(208, 215, 222)',
+          buttonBg: buttonStyles?.backgroundColor || 'rgb(246, 248, 250)',
+          buttonBorder: buttonStyles?.borderColor || 'rgb(208, 215, 222)',
+          inputBg: inputStyles?.backgroundColor || bodyStyles.backgroundColor,
+          secondaryFg: 'rgba(from ' + bodyStyles.color + ' r g b / 0.6)' // 60% opacity of main color
+        };
+      }
+    });
+
+    if (results?.[0]?.result) {
+      const styles = results[0].result;
+      const root = document.documentElement;
+
+      // Set CSS custom properties
+      root.style.setProperty('--gh-bg-color', styles.bgColor);
+      root.style.setProperty('--gh-fg-color', styles.fgColor);
+      root.style.setProperty('--gh-font-family', styles.fontFamily);
+      root.style.setProperty('--gh-border-color', styles.borderColor);
+      root.style.setProperty('--gh-secondary-bg', styles.buttonBg);
+
+      // Calculate a slightly muted version of the foreground color for secondary text
+      // We'll just use opacity for this
+      const fgMatch = styles.fgColor.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+      if (fgMatch) {
+        const [_, r, g, b] = fgMatch;
+        root.style.setProperty('--gh-secondary-fg', `rgba(${r}, ${g}, ${b}, 0.6)`);
+      }
+    }
+  } catch (e) {
+    console.error('Failed to load GitHub styles:', e);
+    // Silently fail and use defaults
+  }
+}
+
 // Initialize popup
 document.addEventListener('DOMContentLoaded', async () => {
+  // Load GitHub styles first
+  await loadGitHubStyles();
   const config = await loadConfig();
 
   // Load version info
