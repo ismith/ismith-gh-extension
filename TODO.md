@@ -40,3 +40,4 @@
 
 ## 7. Bug fixes and improvements
 - [ ] Fix: Custom filter button shows on /issues but not /pulls
+- [ ] Fix: Annotations work on /pulls but not /issues
