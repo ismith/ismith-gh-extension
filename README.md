@@ -1,24 +1,59 @@
 # GitHub Issue & PR Manager
 
-A Chrome extension (Manifest V3) that enhances GitHub's issue and pull request list views with custom filters and visual annotations.
+A Chrome extension (Manifest V3) that enhances GitHub's issue and pull request list views with custom filters, visual annotations, and powerful configuration options.
 
 ## Features
 
-- **Custom filter dropdown** for common search queries on issues/pulls pages:
-  - **My PRs**: `(author:@me OR (author:app/copilot-swe-agent assignee:@me))`
-  - **My Issues**: `((author:@me no:assignee) OR assignee:@me)`
-  - **PRs to Review**: Non-draft PRs with no reviews, excluding your own
-  - **PRs I'm Reviewing**: PRs where you've commented or reviewed
-- Visual annotations for issues and PRs based on ownership and participation
-- Works on both github.com and GitHub Enterprise (*.ghe.com)
+### Custom Filters
 
-### Understanding "My PRs"
+Quick-access dropdown with common search queries on issues/pulls pages:
 
-In this extension, "My PRs" includes:
-- PRs authored by you (`author:@me`)
-- PRs authored by GitHub Copilot and assigned to you (`author:app/copilot-swe-agent assignee:@me`)
+- **My PRs (incl Copilot)**: `(author:@me OR (author:app/copilot-swe-agent assignee:@me))`
+- **My Issues**: `((author:@me no:assignee) OR assignee:@me)`
+- **PRs w/o Reviewer**: `is:pr is:open (-author:@me (-author:app/copilot-swe-agent -assignee:@me)) draft:false review:none`
+- **PRs I'm Reviewing**: `is:pr is:open (commenter:@me OR reviewed-by:@me) (-author:@me (-author:app/copilot-swe-agent OR -assignee:@me))`
 
-This is because PRs "authored" by Copilot are, in every real sense, also authored by the human instructing Copilot. When working with Copilot-generated PRs, the human developer is the true author who directed the work.
+Filters can be enabled/disabled via the popup configuration.
+
+### Visual Annotations
+
+PRs and issues are automatically annotated with colored borders based on your participation:
+
+- **Mine** (default: blue `#0969da`): PRs/issues you authored, or Copilot-authored PRs assigned to you
+- **Reviewed** (default: green `#1a7f37`): PRs you've commented on or reviewed
+- **Mentioned** (default: yellow `#ffbb00`): PRs where you're mentioned
+- **Draft** (dimmed): Draft PRs (opacity reduced, excludes your own)
+
+**Annotation precedence**: Mine > Reviewed > Mentioned (when multiple apply, the highest priority border shows)
+
+### Configuration Popup
+
+Click the extension badge in the GitHub header to open the configuration popup:
+
+- **Enable/disable custom filters** - Toggle the filter dropdown
+- **Configure annotations** - Enable/disable each annotation type individually
+- **Customize colors** - Color pickers with hex input for each annotation
+- **Reset to defaults** - Reset buttons showing the default color
+- **Version information** - Commit hash, commit time, build time (click to copy)
+- **Dynamic theming** - Popup automatically matches GitHub's light/dark mode
+
+All settings are saved automatically and apply live without page reload.
+
+### Understanding Copilot PR Ownership
+
+Throughout this extension, PRs authored by GitHub Copilot (`author:app/copilot-swe-agent`) that are assigned to you are treated as "yours." This includes:
+
+- **My PRs** filter includes Copilot PRs assigned to you
+- **Mine** annotation applies to Copilot PRs assigned to you
+- **PRs I'm Reviewing** filter excludes Copilot PRs assigned to you
+
+**Rationale**: When you assign a PR to Copilot, you are the human directing the work. The PR is authored by you in every meaningful sense - you instructed Copilot what to create, reviewed the changes, and are responsible for the outcome.
+
+## Compatibility
+
+- Works on **github.com** and **GitHub Enterprise** (*.ghe.com)
+- Chrome Extension Manifest V3
+- Firefox compatible (uses WebExtensions-compatible APIs)
 
 ## Development
 
@@ -79,24 +114,19 @@ After making code changes and rebuilding:
 
 **Tip**: If you're actively developing, run `npm run dev` in a terminal to automatically rebuild on file changes. You'll still need to manually reload the extension in Chrome after each rebuild.
 
-## Project Structure
+## Usage
 
-```
-├── src/
-│   ├── background.ts      # Background service worker
-│   ├── content.ts         # Content script (runs on GitHub pages)
-│   ├── content.css        # Styles for annotations
-│   ├── popup.ts           # Extension popup script
-│   ├── popup.html         # Extension popup UI
-│   ├── manifest.json      # Extension manifest (v3)
-│   └── icons/             # Extension icons
-├── dist/                  # Built extension (generated)
-├── webpack.config.js      # Build configuration
-├── tsconfig.json          # TypeScript configuration
-└── package.json           # Dependencies and scripts
+1. **Access custom filters**: Look for the "Custom filters" dropdown on any GitHub issues or pulls page
+2. **View annotations**: PRs and issues are automatically annotated with colored borders
+3. **Configure**: Click the extension badge (Octocat icon) in the GitHub header to open settings
+4. **Customize colors**: Use the color pickers in the popup to set your preferred annotation colors
+5. **Enable/disable features**: Toggle custom filters or individual annotations as needed
 
-```
+## Default Colors
 
-## License
+- **Mine**: `#0969da` (GitHub blue)
+- **Reviewed**: `#1a7f37` (GitHub green)
+- **Mentioned**: `#ffbb00` (Yellow/gold)
+- **Draft**: 60% opacity (dimmed)
 
-MIT
+Colors can be customized via the popup and reset to defaults at any time.
