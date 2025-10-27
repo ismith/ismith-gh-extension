@@ -1,7 +1,7 @@
 // Content script for GitHub issue and PR pages
 
 import { loadConfig } from './config';
-import { FILTERS } from './filterConstants';
+import { FILTERS, FilterType } from './filterConstants';
 
 // Check if we're on an issues or pulls page
 function isIssuesOrPullsPage(): boolean {
@@ -180,8 +180,8 @@ function insertDropdown(container: Element | null, insertBefore: Element | null)
   buttons.forEach(button => {
     button.addEventListener('click', (e) => {
       e.preventDefault();
-      const filterType = (button as HTMLElement).dataset.filterType;
-      applyCustomFilter(filterType!);
+      const filterType = (button as HTMLElement).dataset.filterType as FilterType;
+      applyCustomFilter(filterType);
       dropdown.removeAttribute('open');
     });
   });
@@ -195,7 +195,7 @@ function insertDropdown(container: Element | null, insertBefore: Element | null)
 }
 
 // Apply custom filter based on type
-function applyCustomFilter(filterType: string) {
+function applyCustomFilter(filterType: FilterType) {
   // Find the filter by type
   const filter = Object.values(FILTERS).find(f => f.type === filterType);
   if (!filter) {
