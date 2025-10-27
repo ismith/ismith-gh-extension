@@ -35,13 +35,3 @@ export const FILTERS: Record<keyof typeof FilterType, Filter> = {
     type: FilterType.PRS_IM_REVIEWING
   }
 };
-
-// Helper to get filter by type
-export function getFilterByType(type: FilterType): Filter | undefined {
-  return Object.values(FILTERS).find(f => f.type === type);
-}
-
-// Helper to get filter by query
-export function getFilterByQuery(query: string): Filter | undefined {
-  return Object.values(FILTERS).find(f => f.query === query);
-}

@@ -1,5 +1,8 @@
 // Shared configuration types and utilities
 
+// Storage key for chrome.storage.sync
+const STORAGE_KEY = 'gh-extension-config';
+
 // Annotation type constants for type safety
 export enum AnnotationType {
   MINE = 'mine',
@@ -32,9 +35,9 @@ export const DEFAULT_CONFIG: Config = {
 // Note: chrome.storage API is compatible with Firefox WebExtensions
 export async function loadConfig(): Promise<Config> {
   return new Promise((resolve) => {
-    chrome.storage.sync.get(['gh-extension-config'], (result) => {
-      if (result['gh-extension-config']) {
-        resolve(result['gh-extension-config']);
+    chrome.storage.sync.get([STORAGE_KEY], (result) => {
+      if (result[STORAGE_KEY]) {
+        resolve(result[STORAGE_KEY]);
       } else {
         resolve(DEFAULT_CONFIG);
       }
@@ -46,7 +49,7 @@ export async function loadConfig(): Promise<Config> {
 // Note: chrome.storage API is compatible with Firefox WebExtensions
 export function saveConfig(config: Config): Promise<void> {
   return new Promise((resolve) => {
-    chrome.storage.sync.set({ 'gh-extension-config': config }, () => {
+    chrome.storage.sync.set({ [STORAGE_KEY]: config }, () => {
       resolve();
     });
   });

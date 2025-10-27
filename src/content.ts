@@ -3,6 +3,10 @@
 import { loadConfig, AnnotationType } from './config';
 import { FILTERS, FilterType } from './filterConstants';
 
+// Constants
+const GITHUB_HEADER_AVATAR_SIZE = 32;
+const RETRY_DELAYS = [500, 1000, 2000]; // ms - retry delays for DOM initialization
+
 // Check if we're on an issues or pulls page
 function isIssuesOrPullsPage(): boolean {
   return window.location.pathname.includes('/issues') ||
@@ -35,7 +39,7 @@ function addHeaderBadge() {
   badge.title = 'GitHub Issue & PR Manager';
 
   // Match the avatar size (GitHub avatars in header are typically 32x32)
-  const avatarSize = (avatar as HTMLImageElement).width || 32;
+  const avatarSize = (avatar as HTMLImageElement).width || GITHUB_HEADER_AVATAR_SIZE;
   const iconUrl = chrome.runtime.getURL('icons/icon48.png');
   badge.innerHTML = `<img src="${iconUrl}" alt="Extension" style="width: ${avatarSize}px; height: ${avatarSize}px; vertical-align: middle; border-radius: 50%;">`;
 
@@ -304,6 +308,12 @@ async function injectDynamicCSS() {
   document.head.appendChild(style);
 }
 
+// Helper function to retry operations with delays
+function retryWithDelays(fn: () => void, delays: number[] = RETRY_DELAYS) {
+  fn(); // Execute immediately
+  delays.forEach(delay => setTimeout(fn, delay)); // Then retry with delays
+}
+
 // Main initialization
 async function init() {
   // Load config at start
@@ -321,23 +331,14 @@ async function init() {
 
   // Add custom filter dropdown on issues/pulls pages with retry (only if enabled)
   if (config.filtersEnabled) {
-    addCustomFilterDropdown();
-    // Retry with delays in case DOM isn't ready
-    setTimeout(() => addCustomFilterDropdown(), 500);
-    setTimeout(() => addCustomFilterDropdown(), 1000);
-    setTimeout(() => addCustomFilterDropdown(), 2000);
+    retryWithDelays(addCustomFilterDropdown);
   }
 
   // Show active filter label if applicable
-  showActiveFilterLabel();
-  setTimeout(() => showActiveFilterLabel(), 500);
-  setTimeout(() => showActiveFilterLabel(), 1000);
+  retryWithDelays(showActiveFilterLabel, [500, 1000]); // Only need 2 retries for label
 
   // Add visual annotations to issues/PRs
-  annotateIssuesAndPRs();
-  setTimeout(() => annotateIssuesAndPRs(), 500);
-  setTimeout(() => annotateIssuesAndPRs(), 1000);
-  setTimeout(() => annotateIssuesAndPRs(), 2000);
+  retryWithDelays(annotateIssuesAndPRs);
 }
 
 // Annotate PR/Issue list items with visual indicators
@@ -355,7 +356,7 @@ async function annotateIssuesAndPRs() {
 
   const annotations: Array<{title: string, id: string, annotation: string}> = [];
 
-  titleLinks.forEach(async (link) => {
+  for (const link of Array.from(titleLinks)) {
     const titleElement = link as HTMLElement;
 
     // Find the list item container - go up to find the row
@@ -482,7 +483,7 @@ async function annotateIssuesAndPRs() {
         targetElement.classList.add('gh-extension-mentioned');
       }
     });
-  });
+  }
 
   // Log all annotations in a table
   if (annotations.length > 0) {
