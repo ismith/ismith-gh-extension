@@ -1,6 +1,6 @@
 // Popup script for configuration
 
-import { Config, loadConfig, saveConfig as saveConfigToStorage } from './config';
+import { Config, loadConfig, saveConfig as saveConfigToStorage, AnnotationType } from './config';
 
 // Save config and notify content scripts
 async function saveConfig(config: Config) {
@@ -102,20 +102,20 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Set checkbox states
   (document.getElementById('filters-enabled') as HTMLInputElement).checked = config.filtersEnabled;
-  (document.getElementById('annotation-mine') as HTMLInputElement).checked = config.annotations.mine.enabled;
-  (document.getElementById('annotation-reviewed') as HTMLInputElement).checked = config.annotations.reviewed.enabled;
-  (document.getElementById('annotation-mentioned') as HTMLInputElement).checked = config.annotations.mentioned.enabled;
-  (document.getElementById('annotation-draft') as HTMLInputElement).checked = config.annotations.draft.enabled;
+  (document.getElementById('annotation-mine') as HTMLInputElement).checked = config.annotations[AnnotationType.MINE].enabled;
+  (document.getElementById('annotation-reviewed') as HTMLInputElement).checked = config.annotations[AnnotationType.REVIEWED].enabled;
+  (document.getElementById('annotation-mentioned') as HTMLInputElement).checked = config.annotations[AnnotationType.MENTIONED].enabled;
+  (document.getElementById('annotation-draft') as HTMLInputElement).checked = config.annotations[AnnotationType.DRAFT].enabled;
 
   // Set color values and previews
-  (document.getElementById('color-mine') as HTMLInputElement).value = config.annotations.mine.color;
-  (document.getElementById('color-reviewed') as HTMLInputElement).value = config.annotations.reviewed.color;
-  (document.getElementById('color-mentioned') as HTMLInputElement).value = config.annotations.mentioned.color;
+  (document.getElementById('color-mine') as HTMLInputElement).value = config.annotations[AnnotationType.MINE].color;
+  (document.getElementById('color-reviewed') as HTMLInputElement).value = config.annotations[AnnotationType.REVIEWED].color;
+  (document.getElementById('color-mentioned') as HTMLInputElement).value = config.annotations[AnnotationType.MENTIONED].color;
 
   // Set preview box colors
-  document.getElementById('preview-mine')!.style.backgroundColor = config.annotations.mine.color;
-  document.getElementById('preview-reviewed')!.style.backgroundColor = config.annotations.reviewed.color;
-  document.getElementById('preview-mentioned')!.style.backgroundColor = config.annotations.mentioned.color;
+  document.getElementById('preview-mine')!.style.backgroundColor = config.annotations[AnnotationType.MINE].color;
+  document.getElementById('preview-reviewed')!.style.backgroundColor = config.annotations[AnnotationType.REVIEWED].color;
+  document.getElementById('preview-mentioned')!.style.backgroundColor = config.annotations[AnnotationType.MENTIONED].color;
 
   // Filters enabled checkbox
   document.getElementById('filters-enabled')!.addEventListener('change', (e) => {
@@ -125,22 +125,22 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Annotation checkboxes
   document.getElementById('annotation-mine')!.addEventListener('change', (e) => {
-    config.annotations.mine.enabled = (e.target as HTMLInputElement).checked;
+    config.annotations[AnnotationType.MINE].enabled = (e.target as HTMLInputElement).checked;
     saveConfig(config);
   });
 
   document.getElementById('annotation-reviewed')!.addEventListener('change', (e) => {
-    config.annotations.reviewed.enabled = (e.target as HTMLInputElement).checked;
+    config.annotations[AnnotationType.REVIEWED].enabled = (e.target as HTMLInputElement).checked;
     saveConfig(config);
   });
 
   document.getElementById('annotation-mentioned')!.addEventListener('change', (e) => {
-    config.annotations.mentioned.enabled = (e.target as HTMLInputElement).checked;
+    config.annotations[AnnotationType.MENTIONED].enabled = (e.target as HTMLInputElement).checked;
     saveConfig(config);
   });
 
   document.getElementById('annotation-draft')!.addEventListener('change', (e) => {
-    config.annotations.draft.enabled = (e.target as HTMLInputElement).checked;
+    config.annotations[AnnotationType.DRAFT].enabled = (e.target as HTMLInputElement).checked;
     saveConfig(config);
   });
 
@@ -149,7 +149,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const value = (e.target as HTMLInputElement).value;
     document.getElementById('preview-mine')!.style.backgroundColor = value;
     if (/^#[0-9a-fA-F]{6}$/.test(value)) {
-      config.annotations.mine.color = value;
+      config.annotations[AnnotationType.MINE].color = value;
       saveConfig(config);
     }
   });
@@ -158,7 +158,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const value = (e.target as HTMLInputElement).value;
     document.getElementById('preview-reviewed')!.style.backgroundColor = value;
     if (/^#[0-9a-fA-F]{6}$/.test(value)) {
-      config.annotations.reviewed.color = value;
+      config.annotations[AnnotationType.REVIEWED].color = value;
       saveConfig(config);
     }
   });
@@ -167,7 +167,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const value = (e.target as HTMLInputElement).value;
     document.getElementById('preview-mentioned')!.style.backgroundColor = value;
     if (/^#[0-9a-fA-F]{6}$/.test(value)) {
-      config.annotations.mentioned.color = value;
+      config.annotations[AnnotationType.MENTIONED].color = value;
       saveConfig(config);
     }
   });
@@ -186,11 +186,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       // Update config
       if (target === 'color-mine') {
-        config.annotations.mine.color = defaultColor;
+        config.annotations[AnnotationType.MINE].color = defaultColor;
       } else if (target === 'color-reviewed') {
-        config.annotations.reviewed.color = defaultColor;
+        config.annotations[AnnotationType.REVIEWED].color = defaultColor;
       } else if (target === 'color-mentioned') {
-        config.annotations.mentioned.color = defaultColor;
+        config.annotations[AnnotationType.MENTIONED].color = defaultColor;
       }
       saveConfig(config);
     });

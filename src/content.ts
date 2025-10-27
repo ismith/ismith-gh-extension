@@ -1,6 +1,6 @@
 // Content script for GitHub issue and PR pages
 
-import { loadConfig } from './config';
+import { loadConfig, AnnotationType } from './config';
 import { FILTERS, FilterType } from './filterConstants';
 
 // Check if we're on an issues or pulls page
@@ -275,29 +275,29 @@ async function injectDynamicCSS() {
   style.textContent = `
     /* Draft - lowest precedence, can combine with others */
     /* Apply opacity to child elements only, not the border */
-    ${config.annotations.draft.enabled ? `
+    ${config.annotations[AnnotationType.DRAFT].enabled ? `
     .gh-extension-draft > * {
       opacity: 0.6 !important;
     }` : ''}
 
     /* Mentioned - lowest border precedence */
-    ${config.annotations.mentioned.enabled ? `
+    ${config.annotations[AnnotationType.MENTIONED].enabled ? `
     .gh-extension-mentioned {
-      border-left: 4px solid ${config.annotations.mentioned.color} !important;
+      border-left: 4px solid ${config.annotations[AnnotationType.MENTIONED].color} !important;
       margin-left: -4px !important;
     }` : ''}
 
     /* Reviewed - medium border precedence, overrides mentioned */
-    ${config.annotations.reviewed.enabled ? `
+    ${config.annotations[AnnotationType.REVIEWED].enabled ? `
     .gh-extension-reviewed {
-      border-left: 4px solid ${config.annotations.reviewed.color} !important;
+      border-left: 4px solid ${config.annotations[AnnotationType.REVIEWED].color} !important;
       margin-left: -4px !important;
     }` : ''}
 
     /* Mine - highest border precedence, overrides reviewed and mentioned */
-    ${config.annotations.mine.enabled ? `
+    ${config.annotations[AnnotationType.MINE].enabled ? `
     .gh-extension-mine {
-      border-left: 4px solid ${config.annotations.mine.color} !important;
+      border-left: 4px solid ${config.annotations[AnnotationType.MINE].color} !important;
       margin-left: -4px !important;
     }` : ''}
   `;

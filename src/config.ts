@@ -1,22 +1,30 @@
 // Shared configuration types and utilities
 
+// Annotation type constants for type safety
+export enum AnnotationType {
+  MINE = 'mine',
+  REVIEWED = 'reviewed',
+  MENTIONED = 'mentioned',
+  DRAFT = 'draft'
+}
+
 export interface Config {
   filtersEnabled: boolean;
   annotations: {
-    mine: { enabled: boolean; color: string };
-    reviewed: { enabled: boolean; color: string };
-    mentioned: { enabled: boolean; color: string };
-    draft: { enabled: boolean };
+    [AnnotationType.MINE]: { enabled: boolean; color: string };
+    [AnnotationType.REVIEWED]: { enabled: boolean; color: string };
+    [AnnotationType.MENTIONED]: { enabled: boolean; color: string };
+    [AnnotationType.DRAFT]: { enabled: boolean };
   };
 }
 
 export const DEFAULT_CONFIG: Config = {
   filtersEnabled: true,
   annotations: {
-    mine: { enabled: true, color: '#0969da' },
-    reviewed: { enabled: true, color: '#1a7f37' },
-    mentioned: { enabled: true, color: '#ffbb00' },
-    draft: { enabled: true }
+    [AnnotationType.MINE]: { enabled: true, color: '#0969da' },
+    [AnnotationType.REVIEWED]: { enabled: true, color: '#1a7f37' },
+    [AnnotationType.MENTIONED]: { enabled: true, color: '#ffbb00' },
+    [AnnotationType.DRAFT]: { enabled: true }
   }
 };
 
