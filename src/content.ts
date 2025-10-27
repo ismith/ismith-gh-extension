@@ -1,6 +1,7 @@
 // Content script for GitHub issue and PR pages
 
 import { loadConfig } from './config';
+import { FILTERS } from './filterConstants';
 
 // Check if we're on an issues or pulls page
 function isIssuesOrPullsPage(): boolean {
@@ -123,17 +124,17 @@ function insertDropdown(container: Element | null, insertBefore: Element | null)
       <details-menu class="SelectMenu SelectMenu--hasFilter" role="menu">
         <div class="SelectMenu-modal">
           <div class="SelectMenu-list">
-            <button class="SelectMenu-item" role="menuitem" data-filter-type="my-prs">
-              <span class="SelectMenu-item-text">My PRs</span>
+            <button class="SelectMenu-item" role="menuitem" data-filter-type="${FILTERS.MY_PRS.type}">
+              <span class="SelectMenu-item-text">${FILTERS.MY_PRS.name}</span>
             </button>
-            <button class="SelectMenu-item" role="menuitem" data-filter-type="my-issues">
-              <span class="SelectMenu-item-text">My Issues</span>
+            <button class="SelectMenu-item" role="menuitem" data-filter-type="${FILTERS.MY_ISSUES.type}">
+              <span class="SelectMenu-item-text">${FILTERS.MY_ISSUES.name}</span>
             </button>
-            <button class="SelectMenu-item" role="menuitem" data-filter-type="prs-to-review">
-              <span class="SelectMenu-item-text">PRs to Review</span>
+            <button class="SelectMenu-item" role="menuitem" data-filter-type="${FILTERS.PRS_TO_REVIEW.type}">
+              <span class="SelectMenu-item-text">${FILTERS.PRS_TO_REVIEW.name}</span>
             </button>
-            <button class="SelectMenu-item" role="menuitem" data-filter-type="prs-im-reviewing">
-              <span class="SelectMenu-item-text">PRs I'm Reviewing</span>
+            <button class="SelectMenu-item" role="menuitem" data-filter-type="${FILTERS.PRS_IM_REVIEWING.type}">
+              <span class="SelectMenu-item-text">${FILTERS.PRS_IM_REVIEWING.name}</span>
             </button>
           </div>
         </div>
@@ -156,17 +157,17 @@ function insertDropdown(container: Element | null, insertBefore: Element | null)
       </summary>
       <details-menu class="SelectMenu-modal">
         <div class="SelectMenu-list">
-          <button class="SelectMenu-item" role="menuitem" data-filter-type="my-prs">
-            <span class="SelectMenu-item-text">My PRs</span>
+          <button class="SelectMenu-item" role="menuitem" data-filter-type="${FILTERS.MY_PRS.type}">
+            <span class="SelectMenu-item-text">${FILTERS.MY_PRS.name}</span>
           </button>
-          <button class="SelectMenu-item" role="menuitem" data-filter-type="my-issues">
-            <span class="SelectMenu-item-text">My Issues</span>
+          <button class="SelectMenu-item" role="menuitem" data-filter-type="${FILTERS.MY_ISSUES.type}">
+            <span class="SelectMenu-item-text">${FILTERS.MY_ISSUES.name}</span>
           </button>
-          <button class="SelectMenu-item" role="menuitem" data-filter-type="prs-to-review">
-            <span class="SelectMenu-item-text">PRs to Review</span>
+          <button class="SelectMenu-item" role="menuitem" data-filter-type="${FILTERS.PRS_TO_REVIEW.type}">
+            <span class="SelectMenu-item-text">${FILTERS.PRS_TO_REVIEW.name}</span>
           </button>
-          <button class="SelectMenu-item" role="menuitem" data-filter-type="prs-im-reviewing">
-            <span class="SelectMenu-item-text">PRs I'm Reviewing</span>
+          <button class="SelectMenu-item" role="menuitem" data-filter-type="${FILTERS.PRS_IM_REVIEWING.type}">
+            <span class="SelectMenu-item-text">${FILTERS.PRS_IM_REVIEWING.name}</span>
           </button>
         </div>
       </details-menu>
@@ -195,22 +196,14 @@ function insertDropdown(container: Element | null, insertBefore: Element | null)
 
 // Apply custom filter based on type
 function applyCustomFilter(filterType: string) {
-  let filterQuery = '';
-
-  switch (filterType) {
-    case 'my-prs':
-      filterQuery = 'is:pr is:open (author:@me OR (author:app/copilot-swe-agent assignee:@me))';
-      break;
-    case 'my-issues':
-      filterQuery = 'is:issue is:open ((author:@me no:assignee) OR assignee:@me)';
-      break;
-    case 'prs-to-review':
-      filterQuery = 'is:pr is:open (-author:@me (-author:app/copilot-swe-agent -assignee:@me)) draft:false review:none';
-      break;
-    case 'prs-im-reviewing':
-      filterQuery = 'is:pr is:open (commenter:@me OR reviewed-by:@me)';
-      break;
+  // Find the filter by type
+  const filter = Object.values(FILTERS).find(f => f.type === filterType);
+  if (!filter) {
+    console.error('Unknown filter type:', filterType);
+    return;
   }
+
+  const filterQuery = filter.query;
 
   // If we're on /pulls, redirect to /issues for full search support
   const isOnPulls = window.location.pathname.includes('/pulls');
@@ -233,15 +226,9 @@ function showActiveFilterLabel() {
   const currentUrl = new URL(window.location.href);
   const currentQuery = currentUrl.searchParams.get('q') || '';
 
-  // Map queries to filter names
-  const filterMap: { [key: string]: string } = {
-    'is:pr is:open (author:@me OR (author:app/copilot-swe-agent assignee:@me))': 'My PRs',
-    'is:issue is:open ((author:@me no:assignee) OR assignee:@me)': 'My Issues',
-    'is:pr is:open (-author:@me (-author:app/copilot-swe-agent -assignee:@me)) draft:false review:none': 'PRs to Review',
-    'is:pr is:open (commenter:@me OR reviewed-by:@me)': "PRs I'm Reviewing"
-  };
-
-  const filterName = filterMap[currentQuery];
+  // Find matching filter by query
+  const filter = Object.values(FILTERS).find(f => f.query === currentQuery);
+  const filterName = filter?.name;
 
   // Find the repository div
   const repositoryDiv = document.querySelector('#repository');
