@@ -184,6 +184,18 @@
       content: 'Copied!';
       opacity: 1;
     }
+
+    .version-link {
+      color: var(--gh-secondary-fg);
+      text-decoration: none;
+      cursor: pointer;
+      transition: text-decoration 0.2s ease, color 0.2s ease;
+    }
+
+    .version-link:hover {
+      text-decoration: underline;
+      color: var(--gh-fg-color);
+    }
   </style>
 </head>
 <body>
@@ -243,6 +255,7 @@
     <div><span class="version-label">Version:</span><span id="version-commit" class="version-value" data-tooltip="Click to copy">-</span></div>
     <div><span class="version-label">Commit Time:</span><span id="version-commit-time" class="version-value" data-tooltip="Click to copy">-</span></div>
     <div><span class="version-label">Build Time:</span><span id="version-build-time" class="version-value" data-tooltip="Click to copy">-</span></div>
+    <div><span class="version-label">Home:</span><a href="https://github.com/ismith/ismith-gh-extension" target="_blank" class="version-link">https://github.com/ismith/ismith-gh-extension</a></div>
   </div>
 
   <script src="popup.js"></script>
