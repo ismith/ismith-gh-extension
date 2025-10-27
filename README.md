@@ -4,14 +4,32 @@ A Chrome extension (Manifest V3) that enhances GitHub's issue and pull request l
 
 ## Features
 
+### Understanding Copilot PR Ownership
+
+Throughout this extension, PRs authored by GitHub Copilot (`author:app/copilot-swe-agent`) that are assigned to you are treated as "yours." This includes:
+
+- **My PRs (incl Copilot)** filter includes Copilot PRs assigned to you
+- **Mine** annotation applies to Copilot PRs assigned to you
+- **PRs I'm Reviewing** filter excludes Copilot PRs assigned to you
+
+**Rationale**: When you assign a PR to Copilot, you are the human directing the work. The PR is authored by you in every meaningful sense - you instructed Copilot what to create, reviewed the changes before asking another engineer to review/approve, and are responsible for the outcome.
+
 ### Custom Filters
 
-Quick-access dropdown with common search queries on issues/pulls pages:
+Quick-access dropdown with common search queries on /issues and /pulls pages.
 
-- **My PRs (incl Copilot)**: `(author:@me OR (author:app/copilot-swe-agent assignee:@me))`
-- **My Issues**: `((author:@me no:assignee) OR assignee:@me)`
-- **PRs w/o Reviewer**: `is:pr is:open (-author:@me (-author:app/copilot-swe-agent -assignee:@me)) draft:false review:none`
-- **PRs I'm Reviewing**: `is:pr is:open (commenter:@me OR reviewed-by:@me) (-author:@me (-author:app/copilot-swe-agent OR -assignee:@me))`
+- **My PRs (incl Copilot)**
+  -`(author:@me OR (author:app/copilot-swe-agent assignee:@me))`
+  - This filter was the impetus for this extension's creation, since clicking `Author -> me` no longer worked as desired now that Copilot authors some of your PRs.
+- **My Issues**
+  - `((author:@me no:assignee) OR assignee:@me)`
+  - Issues assigned to you, created by you but with no assignee yet.
+- **PRs w/o Reviewer**
+  - `is:pr is:open (-author:@me (-author:app/copilot-swe-agent -assignee:@me)) draft:false review:none`
+  - This is PRs that are not yours, that no one has reviewed yet so maybe you should.
+- **PRs I'm Reviewing**
+  - `is:pr is:open (commenter:@me OR reviewed-by:@me) (-author:@me (-author:app/copilot-swe-agent OR -assignee:@me))`
+  - As with **My PRs (incl Copilot)**, this filter assumes PRs authored by Copilot are "mine" if you're the assignee.
 
 Filters can be enabled/disabled via the popup configuration.
 
@@ -31,23 +49,14 @@ PRs and issues are automatically annotated with colored borders based on your pa
 Click the extension badge in the GitHub header to open the configuration popup:
 
 - **Enable/disable custom filters** - Toggle the filter dropdown
-- **Configure annotations** - Enable/disable each annotation type individually
-- **Customize colors** - Color pickers with hex input for each annotation
-- **Reset to defaults** - Reset buttons showing the default color
+- **Configure annotations** Each annotation has:
+ - **Enable/disable** checkbox
+  - **Customize colors** - Color pickers with hex input for each annotation
+  - **Reset color to default** - Reset buttons showing the default color
 - **Version information** - Commit hash, commit time, build time (click to copy)
 - **Dynamic theming** - Popup automatically matches GitHub's light/dark mode
 
 All settings are saved automatically and apply live without page reload.
-
-### Understanding Copilot PR Ownership
-
-Throughout this extension, PRs authored by GitHub Copilot (`author:app/copilot-swe-agent`) that are assigned to you are treated as "yours." This includes:
-
-- **My PRs** filter includes Copilot PRs assigned to you
-- **Mine** annotation applies to Copilot PRs assigned to you
-- **PRs I'm Reviewing** filter excludes Copilot PRs assigned to you
-
-**Rationale**: When you assign a PR to Copilot, you are the human directing the work. The PR is authored by you in every meaningful sense - you instructed Copilot what to create, reviewed the changes, and are responsible for the outcome.
 
 ## Compatibility
 
