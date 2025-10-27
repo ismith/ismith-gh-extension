@@ -31,7 +31,7 @@ export const FILTERS: Record<keyof typeof FilterType, Filter> = {
   },
   PRS_IM_REVIEWING: {
     name: "PRs I'm Reviewing",
-    query: 'is:pr is:open (commenter:@me OR reviewed-by:@me)',
+    query: 'is:pr is:open (commenter:@me OR reviewed-by:@me) (-author:@me (-author:app/copilot-swe-agent OR -assignee:@me))',
     type: FilterType.PRS_IM_REVIEWING
   }
 };
