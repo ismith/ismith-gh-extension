@@ -395,7 +395,7 @@ async function annotateIssuesAndPRs() {
     }
 
     if (!listItem) {
-      return;
+      continue;
     }
 
     // Get title and ID for logging
@@ -421,7 +421,7 @@ async function annotateIssuesAndPRs() {
         }
         targetElement.classList.add('gh-extension-mine');
       }
-      return;
+      continue;
     }
 
     listItem.classList.add('gh-extension-annotated');
@@ -598,23 +598,18 @@ function checkIfMine(item: HTMLElement, debugId?: string): boolean {
     }
   });
 
-  // Check for assignee links with data-hovercard-type
-  const hovercardLinks = item.querySelectorAll('a[data-hovercard-type="user"], a[data-hovercard-type="copilot"]');
-  hovercardLinks.forEach(link => {
-    const ariaLabel = link.getAttribute('aria-label') || '';
-
-    // Check for individual assignee labels (e.g., "ismith is assigned")
-    if (ariaLabel.toLowerCase().includes('is assigned') && ariaLabel.includes(currentUser)) {
-      isAssignedToMe = true;
-    }
-  });
-
-  // Also check for assignee via aria-label on any element (fallback for /pulls pages)
+  // Check ALL elements with aria-label for assignee info
+  // This includes links, spans, imgs, etc.
   const ariaLabelElements = item.querySelectorAll('[aria-label]');
   ariaLabelElements.forEach(element => {
     const ariaLabel = element.getAttribute('aria-label') || '';
 
-    // Check for "assigned to" in aria-label (e.g., "Assigned to Copilot and ismith")
+    // Check for "is assigned" in aria-label (e.g., "ismith is assigned", "Copilot is assigned")
+    if (ariaLabel.toLowerCase().includes('is assigned') && ariaLabel.includes(currentUser)) {
+      isAssignedToMe = true;
+    }
+
+    // Also check for "assigned to" in aria-label (e.g., "Assigned to Copilot and ismith")
     if (ariaLabel.toLowerCase().includes('assigned to') && ariaLabel.includes(currentUser)) {
       isAssignedToMe = true;
     }
