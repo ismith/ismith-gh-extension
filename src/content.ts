@@ -420,6 +420,8 @@ async function annotateIssuesAndPRs() {
           targetElement = innerDiv;
         }
         targetElement.classList.add('gh-extension-mine');
+        // Remove draft class since this is now recognized as mine
+        targetElement.classList.remove('gh-extension-draft');
       }
       continue;
     }
