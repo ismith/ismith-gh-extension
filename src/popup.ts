@@ -106,6 +106,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   (document.getElementById('annotation-reviewed') as HTMLInputElement).checked = config.annotations[AnnotationType.REVIEWED].enabled;
   (document.getElementById('annotation-mentioned') as HTMLInputElement).checked = config.annotations[AnnotationType.MENTIONED].enabled;
   (document.getElementById('annotation-draft') as HTMLInputElement).checked = config.annotations[AnnotationType.DRAFT].enabled;
+  (document.getElementById('annotation-mergequeue') as HTMLInputElement).checked = config.annotations[AnnotationType.MERGE_QUEUE].enabled;
 
   // Set color values and previews
   (document.getElementById('color-mine') as HTMLInputElement).value = config.annotations[AnnotationType.MINE].color;
@@ -141,6 +142,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   document.getElementById('annotation-draft')!.addEventListener('change', (e) => {
     config.annotations[AnnotationType.DRAFT].enabled = (e.target as HTMLInputElement).checked;
+    saveConfig(config);
+  });
+
+  document.getElementById('annotation-mergequeue')!.addEventListener('change', (e) => {
+    config.annotations[AnnotationType.MERGE_QUEUE].enabled = (e.target as HTMLInputElement).checked;
     saveConfig(config);
   });
 

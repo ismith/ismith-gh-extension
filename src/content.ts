@@ -310,6 +310,13 @@ async function injectDynamicCSS() {
       border-left: 4px solid ${config.annotations[AnnotationType.MINE].color} !important;
       margin-left: -4px !important;
     }` : ''}
+
+    /* Merge queue - my queued PRs, reuses the mine color */
+    ${config.annotations[AnnotationType.MERGE_QUEUE].enabled ? `
+    .gh-extension-mergequeue {
+      border-left: 4px solid ${config.annotations[AnnotationType.MINE].color} !important;
+      margin-left: -4px !important;
+    }` : ''}
   `;
   document.head.appendChild(style);
 }
@@ -331,10 +338,12 @@ async function init() {
   // Merge queue pages get "mine" annotations only (no filters/labels)
   if (isMergeQueuePage()) {
     await injectDynamicCSS();
-    retryWithDelays(annotateMergeQueue);
-    // The merge queue live-updates its rows in place (no URL change), which
-    // wipes our classes, so watch for DOM changes and re-annotate.
-    observeMergeQueue();
+    if (config.annotations[AnnotationType.MERGE_QUEUE].enabled) {
+      retryWithDelays(annotateMergeQueue);
+      // The merge queue live-updates its rows in place (no URL change), which
+      // wipes our classes, so watch for DOM changes and re-annotate.
+      observeMergeQueue();
+    }
     return;
   }
 
@@ -526,9 +535,9 @@ function annotateMergeQueue() {
     }
     rowEl.classList.add('gh-extension-annotated');
 
-    // Reuse the same ownership check used for issues/PRs (author:@me or copilot+assigned)
+    // Reuse the "mine" ownership check; the merge-queue border reuses the mine color
     if (checkIfMine(rowEl)) {
-      rowEl.classList.add('gh-extension-mine');
+      rowEl.classList.add('gh-extension-mergequeue');
     }
   });
 }
@@ -728,6 +737,12 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     } else if (config.filtersEnabled) {
       // Dropdown doesn't exist but should - add it
       addCustomFilterDropdown();
+    }
+
+    // Apply merge queue annotations live if just enabled on a queue page
+    if (isMergeQueuePage() && config.annotations[AnnotationType.MERGE_QUEUE]?.enabled) {
+      annotateMergeQueue();
+      observeMergeQueue();
     }
 
     // Send response to acknowledge receipt

@@ -8,7 +8,8 @@ export enum AnnotationType {
   MINE = 'mine',
   REVIEWED = 'reviewed',
   MENTIONED = 'mentioned',
-  DRAFT = 'draft'
+  DRAFT = 'draft',
+  MERGE_QUEUE = 'mergequeue'
 }
 
 export interface Config {
@@ -18,6 +19,7 @@ export interface Config {
     [AnnotationType.REVIEWED]: { enabled: boolean; color: string };
     [AnnotationType.MENTIONED]: { enabled: boolean; color: string };
     [AnnotationType.DRAFT]: { enabled: boolean };
+    [AnnotationType.MERGE_QUEUE]: { enabled: boolean };
   };
 }
 
@@ -27,7 +29,8 @@ export const DEFAULT_CONFIG: Config = {
     [AnnotationType.MINE]: { enabled: true, color: '#0969da' },
     [AnnotationType.REVIEWED]: { enabled: true, color: '#1a7f37' },
     [AnnotationType.MENTIONED]: { enabled: true, color: '#ffbb00' },
-    [AnnotationType.DRAFT]: { enabled: true }
+    [AnnotationType.DRAFT]: { enabled: true },
+    [AnnotationType.MERGE_QUEUE]: { enabled: true }
   }
 };
 
@@ -36,8 +39,17 @@ export const DEFAULT_CONFIG: Config = {
 export async function loadConfig(): Promise<Config> {
   return new Promise((resolve) => {
     chrome.storage.sync.get([STORAGE_KEY], (result) => {
-      if (result[STORAGE_KEY]) {
-        resolve(result[STORAGE_KEY]);
+      const stored = result[STORAGE_KEY];
+      if (stored) {
+        // Merge with defaults so settings added in newer versions get sane values
+        resolve({
+          ...DEFAULT_CONFIG,
+          ...stored,
+          annotations: {
+            ...DEFAULT_CONFIG.annotations,
+            ...stored.annotations
+          }
+        });
       } else {
         resolve(DEFAULT_CONFIG);
       }
