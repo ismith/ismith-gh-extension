@@ -44,6 +44,17 @@ PRs and issues are automatically annotated with colored borders based on your pa
 
 **Annotation precedence**: Mine > Reviewed > Mentioned (when multiple apply, the highest priority border shows)
 
+### Merge Queue Annotations
+
+On a repository's merge queue page (`/{org}/{repo}/queue/{queue_name}`), queued pull
+requests that are **yours** get the same blue **Mine** bar on the left. A PR counts as
+yours when you are either the one who opened it or the one who enqueued it (the same
+Copilot-ownership convention described above applies).
+
+The merge queue updates its list live as PRs merge, and the annotations re-apply
+automatically. This feature can be toggled on or off from the popup (see below), and
+works on **github.com** and **GitHub Enterprise** (`*.ghe.com`).
+
 ### Configuration Popup
 
 Click the extension badge in the GitHub header to open the configuration popup:
@@ -53,6 +64,7 @@ Click the extension badge in the GitHub header to open the configuration popup:
  - **Enable/disable** checkbox
   - **Customize colors** - Color pickers with hex input for each annotation
   - **Reset color to default** - Reset buttons showing the default color
+- **Merge Queue** - Enable/disable highlighting your queued PRs on merge queue pages
 - **Version information** - Commit hash, commit time, build time (click to copy)
 - **Dynamic theming** - Popup automatically matches GitHub's light/dark mode
 

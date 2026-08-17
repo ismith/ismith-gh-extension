@@ -13,6 +13,12 @@ function isIssuesOrPullsPage(): boolean {
          window.location.pathname.includes('/pulls');
 }
 
+// Check if we're on a merge queue page (/{org}/{repo}/queue/{queue_name})
+// The queue name segment can be any branch name (main, master, or anything else)
+function isMergeQueuePage(): boolean {
+  return /^\/(?<org>[^/]+)\/(?<repo>[^/]+)\/queue\/(?<queue>[^/]+)/.test(window.location.pathname);
+}
+
 // Add extension icon badge to GitHub header
 function addHeaderBadge() {
   // Check if badge already exists
@@ -304,6 +310,13 @@ async function injectDynamicCSS() {
       border-left: 4px solid ${config.annotations[AnnotationType.MINE].color} !important;
       margin-left: -4px !important;
     }` : ''}
+
+    /* Merge queue - my queued PRs, reuses the mine color */
+    ${config.annotations[AnnotationType.MERGE_QUEUE].enabled ? `
+    .gh-extension-mergequeue {
+      border-left: 4px solid ${config.annotations[AnnotationType.MINE].color} !important;
+      margin-left: -4px !important;
+    }` : ''}
   `;
   document.head.appendChild(style);
 }
@@ -321,6 +334,18 @@ async function init() {
 
   // Always add header badge (on all GitHub pages)
   addHeaderBadge();
+
+  // Merge queue pages get "mine" annotations only (no filters/labels)
+  if (isMergeQueuePage()) {
+    await injectDynamicCSS();
+    if (config.annotations[AnnotationType.MERGE_QUEUE].enabled) {
+      retryWithDelays(annotateMergeQueue);
+      // The merge queue live-updates its rows in place (no URL change), which
+      // wipes our classes, so watch for DOM changes and re-annotate.
+      observeMergeQueue();
+    }
+    return;
+  }
 
   if (!isIssuesOrPullsPage()) {
     return;
@@ -491,6 +516,54 @@ async function annotateIssuesAndPRs() {
   if (annotations.length > 0) {
     console.table(annotations);
   }
+}
+
+// Annotate merge queue entries that belong to the current user with a blue "mine" bar
+// Merge queue rows are rendered as div.d-flex.flex-row.tmp-pb-3 with the author nested inside
+function annotateMergeQueue() {
+  const rows = document.querySelectorAll('div.d-flex.flex-row.tmp-pb-3');
+  if (rows.length === 0) {
+    return;
+  }
+
+  rows.forEach(row => {
+    const rowEl = row as HTMLElement;
+
+    // Skip rows we've already processed
+    if (rowEl.classList.contains('gh-extension-annotated')) {
+      return;
+    }
+    rowEl.classList.add('gh-extension-annotated');
+
+    // Reuse the "mine" ownership check; the merge-queue border reuses the mine color
+    if (checkIfMine(rowEl)) {
+      rowEl.classList.add('gh-extension-mergequeue');
+    }
+  });
+}
+
+// Watch the merge queue for in-place re-renders and re-apply annotations.
+// annotateMergeQueue is idempotent (skips rows already marked), and we debounce
+// so our own class additions settle without looping.
+let mergeQueueObserver: MutationObserver | null = null;
+function observeMergeQueue() {
+  if (mergeQueueObserver) {
+    return; // already observing
+  }
+
+  let scheduled = false;
+  mergeQueueObserver = new MutationObserver(() => {
+    if (scheduled) {
+      return;
+    }
+    scheduled = true;
+    setTimeout(() => {
+      scheduled = false;
+      annotateMergeQueue();
+    }, 200);
+  });
+
+  mergeQueueObserver.observe(document.body, { subtree: true, childList: true });
 }
 
 // Check if user has interacted with a PR (reviewed, commented, or been mentioned)
@@ -664,6 +737,12 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     } else if (config.filtersEnabled) {
       // Dropdown doesn't exist but should - add it
       addCustomFilterDropdown();
+    }
+
+    // Apply merge queue annotations live if just enabled on a queue page
+    if (isMergeQueuePage() && config.annotations[AnnotationType.MERGE_QUEUE]?.enabled) {
+      annotateMergeQueue();
+      observeMergeQueue();
     }
 
     // Send response to acknowledge receipt
